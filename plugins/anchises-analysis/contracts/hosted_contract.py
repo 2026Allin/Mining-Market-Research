@@ -1,4 +1,4 @@
-"""Load and validate the Anchises Analysis Hosted MCP descriptor snapshot."""
+"""Load and validate the Mining Market Research MCP descriptor snapshot."""
 
 from __future__ import annotations
 

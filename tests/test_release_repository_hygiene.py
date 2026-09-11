@@ -7,7 +7,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = (
-    ROOT / "plugins" / "anchises-analysis" / "skills" / "anchises-analysis"
+    ROOT / "plugins" / "anchises-analysis" / "skills" / "mining-market-research"
 )
 OAUTH_PLAN = ROOT / "docs" / "hosted-mcp-oauth-migration-plan.md"
 
@@ -20,7 +20,7 @@ class ReleaseRepositoryHygieneTest(unittest.TestCase):
         skill = (
             SKILL_ROOT.parent / "company-report" / "SKILL.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("../anchises-analysis/workflows/company-report.md", skill)
+        self.assertIn("../mining-market-research/workflows/company-report.md", skill)
 
     def test_generated_output_directories_are_ignored(self) -> None:
         rules = {

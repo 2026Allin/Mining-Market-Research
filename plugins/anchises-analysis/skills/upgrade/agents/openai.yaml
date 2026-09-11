@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mining Market Research Upgrade"
+  short_description: "Check, upgrade and verify the research plugin"
+  default_prompt: "Use $upgrade to upgrade Mining Market Research and verify the installation."

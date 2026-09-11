@@ -258,7 +258,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         tools = body["result"]["tools"]
-        self.assertEqual(len(tools), 12)
+        self.assertEqual(len(tools), 17)
         self.assertFalse(
             {"get_cached_company_report", "read_company_report"}
             & {tool["name"] for tool in tools}
@@ -933,7 +933,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
                 refreshed["source"]["instructions"],
                 self.contract["source"]["instructions"],
             )
-            self.assertEqual(len(refreshed["tools"]), 12)
+            self.assertEqual(len(refreshed["tools"]), 17)
 
             status, body, headers = _request(
                 f"{services.base_url}/mcp",
@@ -959,7 +959,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
                 payload={"jsonrpc": "2.0", "id": 21, "method": "tools/list", "params": {}},
             )
             self.assertEqual(status, 200)
-            self.assertEqual(len(listed["result"]["tools"]), 12)
+            self.assertEqual(len(listed["result"]["tools"]), 17)
             for descriptor in listed["result"]["tools"]:
                 self.assertEqual(descriptor["securitySchemes"], [{"type": "noauth"}])
 

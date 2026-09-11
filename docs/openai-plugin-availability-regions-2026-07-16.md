@@ -226,7 +226,7 @@ Official sources:
 - Zambia
 - Zimbabwe
 
-## Approved release decision for Anchises Analysis
+## Approved release decision for Mining Market Research
 
 For `0.4.0-beta.2`, use broad public availability:
 

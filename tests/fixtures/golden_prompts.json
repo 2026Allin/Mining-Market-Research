@@ -3,14 +3,31 @@
     {
       "id": "status-direct",
       "category": "direct",
-      "prompt": "Check whether Anchises Analysis is available before we start.",
+      "prompt": "Check whether Mining Market Research is available before we start.",
       "expected_primary_task": "diagnostics",
-      "expected_skill": "anchises-analysis",
-      "expected_tools": ["get_connection_status"],
-      "expected_arguments": {"get_connection_status": {}},
-      "expected_release_check": {"mode": "cache_first", "platform": "active_host", "max_git_queries": 1},
-      "forbidden_tools": ["get_available_exchanges", "get_latest_dates", "resolve_company_identity", "prepare_company_report_generation", "screen_stocks"],
-      "forbidden_operations": ["http_health", "plugin_install"],
+      "expected_skill": "mining-market-research",
+      "expected_tools": [
+        "get_connection_status"
+      ],
+      "expected_arguments": {
+        "get_connection_status": {}
+      },
+      "expected_release_check": {
+        "mode": "cache_first",
+        "platform": "active_host",
+        "max_git_queries": 1
+      },
+      "forbidden_tools": [
+        "get_available_exchanges",
+        "get_latest_dates",
+        "resolve_company_identity",
+        "prepare_company_report_generation",
+        "screen_stocks"
+      ],
+      "forbidden_operations": [
+        "http_health",
+        "plugin_install"
+      ],
       "expected_output_contract": {
         "response_status": "mechanical_result",
         "semantic_questions": 0
@@ -19,35 +36,63 @@
     {
       "id": "status-force-refresh",
       "category": "direct",
-      "prompt": "$anchises-analysis 强制刷新并检查状态",
+      "prompt": "$mining-market-research 强制刷新并检查状态",
       "expected_primary_task": "diagnostics",
-      "expected_skill": "anchises-analysis",
-      "expected_tools": ["get_connection_status"],
-      "expected_arguments": {"get_connection_status": {}},
-      "expected_release_check": {"mode": "fresh", "skip_cache_read": true, "platform": "active_host", "max_git_queries": 1},
-      "forbidden_operations": ["http_health", "plugin_install", "plugin_updater"],
+      "expected_skill": "mining-market-research",
+      "expected_tools": [
+        "get_connection_status"
+      ],
+      "expected_arguments": {
+        "get_connection_status": {}
+      },
+      "expected_release_check": {
+        "mode": "fresh",
+        "skip_cache_read": true,
+        "platform": "active_host",
+        "max_git_queries": 1
+      },
+      "forbidden_operations": [
+        "http_health",
+        "plugin_install",
+        "plugin_updater"
+      ],
       "expected_behavior": "Run one service check and exactly one fixed-repository Tag lookup; write the fresh result to cache and do not retry."
     },
     {
       "id": "status-check-update-only",
       "category": "direct",
-      "prompt": "/anchises-analysis 检查更新，只检查不安装",
+      "prompt": "/mining-market-research 检查更新，只检查不安装",
       "expected_primary_task": "diagnostics",
-      "expected_skill": "anchises-analysis",
-      "expected_tools": ["get_connection_status"],
-      "expected_release_check": {"mode": "cache_first", "platform": "active_host", "max_git_queries": 1},
-      "forbidden_operations": ["plugin_install", "plugin_updater"],
+      "expected_skill": "mining-market-research",
+      "expected_tools": [
+        "get_connection_status"
+      ],
+      "expected_release_check": {
+        "mode": "cache_first",
+        "platform": "active_host",
+        "max_git_queries": 1
+      },
+      "forbidden_operations": [
+        "plugin_install",
+        "plugin_updater"
+      ],
       "expected_behavior": "Return the combined mechanical status receipt and never install."
     },
     {
       "id": "check-and-install-update",
       "category": "direct",
-      "prompt": "检查并安装 Anchises Analysis 更新",
+      "prompt": "检查并安装 Mining Market Research 更新",
       "expected_primary_task": "plugin_update",
-      "expected_skill": "anchises-analysis",
+      "expected_skill": "mining-market-research",
       "expected_tools": [],
-      "forbidden_tools": ["get_connection_status"],
-      "expected_release_check": {"mode": "fresh", "platform": "active_host", "max_git_queries": 1},
+      "forbidden_tools": [
+        "get_connection_status"
+      ],
+      "expected_release_check": {
+        "mode": "fresh",
+        "platform": "active_host",
+        "max_git_queries": 1
+      },
       "expected_behavior": "Use the existing guarded updater or Claude UI handoff after one fresh Tag check; do not call MCP health."
     },
     {
@@ -56,7 +101,10 @@
       "prompt": "List the supported exchanges and latest stock-data date for each one.",
       "expected_primary_task": "discovery",
       "expected_skill": "market-analysis",
-      "expected_tools": ["get_available_exchanges", "get_latest_dates"]
+      "expected_tools": [
+        "get_available_exchanges",
+        "get_latest_dates"
+      ]
     },
     {
       "id": "structured-screen",
@@ -64,7 +112,11 @@
       "prompt": "Find stocks with volume above one million and a daily gain above five percent, ranked by gain.",
       "expected_primary_task": "market_data",
       "expected_skill": "market-analysis",
-      "expected_tools": ["get_available_exchanges", "get_stock_schema", "screen_stocks"],
+      "expected_tools": [
+        "get_available_exchanges",
+        "get_stock_schema",
+        "screen_stocks"
+      ],
       "expected_behavior": "Use two AND-combined filters and an explicit descending sort without leading with export-policy language.",
       "expected_output_contract": {
         "company_introductions": false,
@@ -79,36 +131,68 @@
       "prompt": "For the entire NYSE, calculate advance and decline counts, average return, and the return distribution.",
       "expected_primary_task": "market_data",
       "expected_skill": "market-analysis",
-      "expected_tools": ["list_stock_tables", "get_table_schema", "validate_readonly_sql", "run_readonly_sql"],
+      "expected_tools": [
+        "list_stock_tables",
+        "get_table_schema",
+        "validate_readonly_sql",
+        "run_readonly_sql"
+      ],
       "expected_behavior": "Use the complete exchange range for server-side aggregation, display no more than 200 rows per call, use a stable ORDER BY for cursor continuation when needed, and offer the SQL query_id for CSV only when its live export policy is eligible and allows run_readonly_sql."
     },
     {
       "id": "nasdaq-dollar-volume-top-100",
       "category": "indirect",
       "prompt": "Rank the NASDAQ Top 100 by dollar volume and show only the fields needed to explain the ranking.",
-      "expected_tools": ["get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks"],
-      "expected_arguments": {"screen_stocks": {"exchanges": ["NASDAQ"], "top_n": 100, "page_size": 100}},
+      "expected_tools": [
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks"
+      ],
+      "expected_arguments": {
+        "screen_stocks": {
+          "exchanges": [
+            "NASDAQ"
+          ],
+          "top_n": 100,
+          "page_size": 100
+        }
+      },
       "expected_behavior": "Use an explicit descending dollar-volume sort and a small research-relevant field list."
     },
     {
       "id": "watchlist-40-tickers",
       "category": "indirect",
       "prompt": "Analyze the 40 tickers in the watchlist above and prepare an exportable research subset.",
-      "expected_tools": ["get_stock_schema", "screen_stocks"],
+      "expected_tools": [
+        "get_stock_schema",
+        "screen_stocks"
+      ],
       "expected_behavior": "Use one exact TICKER in filter with 40 values, select necessary fields, and call create_csv_export only after eligible_by_query=true."
     },
     {
       "id": "single-stock-one-year",
       "category": "indirect",
       "prompt": "Analyze AAPL over the last year using closing price, return, and volume.",
-      "expected_tools": ["resolve_company_identity", "get_latest_dates", "get_stock_schema", "screen_stocks"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks",
+        "get_available_dates"
+      ],
       "expected_behavior": "Use one paired start_date and end_date range, never a single boundary or repeated daily queries."
     },
     {
       "id": "broad-result-preview",
       "category": "indirect",
       "prompt": "Analyze all matching NYSE stocks and show the strongest rows.",
-      "expected_tools": ["get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks"],
+      "expected_tools": [
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks"
+      ],
       "expected_behavior": "Analyze the complete matched range server-side, display at most 200 rows, and when pagination_next_action is call_same_tool_with_cursor offer the next page but fetch it only after an explicit user request; never reconstruct rows with split queries."
     },
     {
@@ -117,10 +201,21 @@
       "prompt": "Research Apple and generate a current Chinese company report with source links.",
       "expected_primary_task": "full_report",
       "expected_skill": "company-report",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_arguments": {
-        "resolve_company_identity": {"query": "Apple", "purpose": "company_report"},
-        "prepare_company_report_generation": {"exchange": "NASDAQ", "ticker": "AAPL", "company_name": "Apple Inc.", "output_locale": "zh-CN"}
+        "resolve_company_identity": {
+          "query": "Apple",
+          "purpose": "company_report"
+        },
+        "prepare_company_report_generation": {
+          "exchange": "NASDAQ",
+          "ticker": "AAPL",
+          "company_name": "Apple Inc.",
+          "output_locale": "zh-CN"
+        }
       },
       "expected_behavior": "Execute prompt_text with Host live web search and return the completed report, not the prompt."
     },
@@ -128,50 +223,93 @@
       "id": "ticker-only-live-report",
       "category": "direct",
       "prompt": "Research AAPL and produce an English company report.",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_arguments": {
-        "resolve_company_identity": {"query": "AAPL", "purpose": "company_report"},
-        "prepare_company_report_generation": {"exchange": "NASDAQ", "ticker": "AAPL", "company_name": "Apple Inc.", "output_locale": "en"}
+        "resolve_company_identity": {
+          "query": "AAPL",
+          "purpose": "company_report"
+        },
+        "prepare_company_report_generation": {
+          "exchange": "NASDAQ",
+          "ticker": "AAPL",
+          "company_name": "Apple Inc.",
+          "output_locale": "en"
+        }
       }
     },
     {
       "id": "context-reference-live-report",
       "category": "indirect",
       "prompt": "Now research the second company above and write its report.",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Extract only the referenced company query from chat context; never send the full conversation to MCP."
     },
     {
       "id": "company-name-stock-data",
       "category": "indirect",
       "prompt": "Show Apple's latest price and 30-day return.",
-      "expected_tools": ["resolve_company_identity", "get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks"],
-      "expected_arguments": {"resolve_company_identity": {"query": "Apple", "purpose": "stock_data"}},
+      "expected_tools": [
+        "resolve_company_identity",
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks"
+      ],
+      "expected_arguments": {
+        "resolve_company_identity": {
+          "query": "Apple",
+          "purpose": "stock_data"
+        }
+      },
       "expected_behavior": "Use canonical NASDAQ and AAPL for structured stock data."
     },
     {
       "id": "external-market-live-report",
       "category": "indirect",
       "prompt": "Research LSE-listed Rio Tinto plc and generate an English report.",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_arguments": {
-        "resolve_company_identity": {"query": "Rio Tinto plc", "exchange_hint": "LSE", "purpose": "company_report"},
-        "prepare_company_report_generation": {"exchange": "LSE", "ticker": "RIO", "company_name": "Rio Tinto plc", "output_locale": "en"}
+        "resolve_company_identity": {
+          "query": "Rio Tinto plc",
+          "exchange_hint": "LSE",
+          "purpose": "company_report"
+        },
+        "prepare_company_report_generation": {
+          "exchange": "LSE",
+          "ticker": "RIO",
+          "company_name": "Rio Tinto plc",
+          "output_locale": "en"
+        }
       },
-      "expected_behavior": "Verify the triplet with primary sources, accept identity_source=host_supplied and selected_sector=Others, and do not claim Anchises verified it."
+      "expected_behavior": "Verify the triplet with primary sources, accept identity_source=host_supplied and selected_sector=Others, and do not claim Mining Market Research verified it."
     },
     {
       "id": "inactive-company-live-report",
       "category": "indirect",
       "prompt": "Research the historical ASX listing OLD and explain what happened to the company.",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Continue live research with Others and verify rename, acquisition, insolvency, suspension, and delisting status."
     },
     {
       "id": "mining-financial-quality",
       "category": "indirect",
       "prompt": "Research Bellevue Gold and analyze its liquidity and dilution risk.",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Section 5 covers dated cash, debt, net cash or debt, burn, runway, fully diluted shares, warrants, convertibles, funding gap, and 12-24 month financing risk."
     },
     {
@@ -180,7 +318,14 @@
       "prompt": "Research Apple, then analyze its latest 30-day price and volume trend.",
       "expected_primary_task": "full_report",
       "expected_skill": "company-report",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation", "get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation",
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks"
+      ],
       "expected_behavior": "Complete live research first and separate it from canonical NASDAQ:AAPL market data."
     },
     {
@@ -189,22 +334,40 @@
       "prompt": "Export the stock screen we just ran as a CSV that expires in ten minutes.",
       "expected_primary_task": "market_data",
       "expected_skill": "market-analysis",
-      "expected_tools": ["create_csv_export"],
-      "expected_arguments": {"create_csv_export": {"query_id": "<prior-screen-query-id>", "expires_in_seconds": 600}},
+      "expected_tools": [
+        "create_csv_export"
+      ],
+      "expected_arguments": {
+        "create_csv_export": {
+          "query_id": "<prior-screen-query-id>",
+          "expires_in_seconds": 600
+        }
+      },
       "expected_behavior": "Call create_csv_export only when the prior rowset has export_policy.eligible_by_query=true and its source tool is listed in source_tools_allowed."
     },
     {
       "id": "liquidity-fields-from-question",
       "category": "indirect",
       "prompt": "Prepare a focused NASDAQ CSV for comparing trading liquidity.",
-      "expected_tools": ["get_stock_schema", "screen_stocks", "create_csv_export"],
+      "expected_tools": [
+        "get_stock_schema",
+        "screen_stocks",
+        "create_csv_export"
+      ],
       "expected_behavior": "Confirm schema names, select only liquidity-relevant measures such as price, volume, dollar volume, and price change, and export only after eligible_by_query=true; do not use a fixed universal field template."
     },
     {
       "id": "historical-fields-from-question",
       "category": "indirect",
       "prompt": "Prepare a focused one-year AAPL historical-bar CSV.",
-      "expected_tools": ["resolve_company_identity", "get_latest_dates", "get_stock_schema", "screen_stocks", "create_csv_export"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks",
+        "create_csv_export",
+        "get_available_dates"
+      ],
       "expected_behavior": "Confirm schema names and select historical-bar fields such as OHLC, adjusted close, and volume rather than reusing the liquidity field set; export only after eligible_by_query=true."
     },
     {
@@ -213,8 +376,13 @@
       "prompt": "Give Apple, NVIDIA, and AMD a current three-to-four-sentence introduction each, covering their core business, latest development, and recent news.",
       "expected_primary_task": "company_brief",
       "expected_skill": "company-brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Preserve the requested order, resolve each company separately, use dated live sources, write three or four prose sentences per company, and end with exactly one relevant semantic question."
     },
     {
@@ -222,8 +390,13 @@
       "category": "indirect",
       "prompt": "Briefly introduce each company you just mentioned above in three or four sentences.",
       "expected_primary_task": "company_brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Use only the most recent explicitly referenced company set, preserve its order, and never scan the full conversation or add companies discovered during research."
     },
     {
@@ -231,8 +404,13 @@
       "category": "direct",
       "prompt": "Brief Apple, NVIDIA, AMD, Intel, TSMC, ASML, Broadcom, and Qualcomm.",
       "expected_primary_task": "company_brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Research only Apple, NVIDIA, AMD, Intel, and TSMC in the current batch; list ASML, Broadcom, and Qualcomm as remaining; then ask exactly one continuation question and one semantic question about only the completed five.",
       "expected_output_contract": {
         "company_introductions": true,
@@ -247,8 +425,13 @@
       "category": "indirect",
       "prompt": "Brief Apple, NVIDIA, and AMD, but prioritize AMD first and Apple second.",
       "expected_primary_task": "company_brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Honor explicit priority as AMD, Apple, then NVIDIA rather than ranking companies by perceived importance."
     },
     {
@@ -256,8 +439,13 @@
       "category": "direct",
       "prompt": "Introduce Apple and NVIDIA briefly and include each company's latest material news.",
       "expected_primary_task": "company_brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Keep company_brief as the single primary task and treat current news as a brief component rather than reclassifying the request as news-only."
     },
     {
@@ -265,8 +453,13 @@
       "category": "direct",
       "prompt": "Brief Apple, NVIDIA, AMD, Intel, TSMC, and ASML, but do not give me optional suggestions.",
       "expected_primary_task": "company_brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Research the first five, omit the optional semantic question, and keep only the ASML continuation question required to finish the original request.",
       "expected_output_contract": {
         "company_introductions": true,
@@ -282,8 +475,13 @@
       "prompt": "Compare Apple, Microsoft, and Alphabet by business mix, competitive position, catalysts, and risks, and briefly say what each one does.",
       "expected_primary_task": "comparison",
       "expected_skill": "company-comparison",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Resolve all three identities, use short business context only to support a dimension-by-dimension comparison, and do not generate separate Briefs or seven-section reports."
     },
     {
@@ -292,8 +490,13 @@
       "prompt": "Compare Apple, Microsoft, Alphabet, Amazon, Meta, and NVIDIA on AI positioning.",
       "expected_primary_task": "comparison",
       "expected_skill": "company-comparison",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Do not apply the standalone introduction window to the comparison set; compare the full requested set or ask one focused scope question if the requested dimensions would be unreadable.",
       "expected_output_contract": {
         "company_introductions": false,
@@ -309,8 +512,17 @@
       "prompt": "Screen TSXV, TSX, Nasdaq, and NYSE for recent price surges, verify which moves have real business developments, discoveries, or major news behind them, and give every validated company a separate introduction.",
       "expected_primary_task": "market_data",
       "expected_skill": "market-analysis",
-      "expected_tools": ["get_connection_status", "get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Complete the ranked market screen and evidence filter first; keep the quantitative result set intact, then introduce only the first five ranked validated companies and preserve every remaining company for continuation.",
       "expected_output_contract": {
         "company_introductions": true,
@@ -327,8 +539,13 @@
       "prompt": "Compare Apple, NVIDIA, AMD, Intel, TSMC, and ASML on AI positioning, and also give each company a separate three-to-four-sentence introduction.",
       "expected_primary_task": "comparison",
       "expected_skill": "company-comparison",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Compare all six resolved companies, but apply the shared five-company window only to the standalone introduction section and keep ASML in the continuation queue.",
       "expected_output_contract": {
         "company_introductions": true,
@@ -345,8 +562,14 @@
       "prompt": "Continue with the next five company introductions from the market screen above.",
       "expected_primary_task": "market_data",
       "expected_skill": "market-analysis",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["screen_stocks", "prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "screen_stocks",
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Reuse the prior discovered result set, server-side order, filters, and data_date; introduce positions six through ten without rerunning the market screen."
     },
     {
@@ -355,8 +578,17 @@
       "prompt": "Use $market-analysis to screen TSX stocks for recent surges with verified catalysts and give every validated company a separate introduction.",
       "expected_primary_task": "market_data",
       "expected_skill": "market-analysis",
-      "expected_tools": ["get_connection_status", "get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Apply the same global introduction window and response finalization used through the coordinator, proving that direct specialist invocation cannot bypass the shared contract.",
       "expected_output_contract": {
         "company_introductions": true,
@@ -373,8 +605,13 @@
       "prompt": "Brief Apple, NVIDIA, and AMD, but do not provide suggestions or follow-up questions.",
       "expected_primary_task": "company_brief",
       "expected_skill": "company-brief",
-      "expected_tools": ["get_connection_status", "resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "get_connection_status",
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Complete all three introductions and end without a continuation or semantic question.",
       "expected_output_contract": {
         "company_introductions": true,
@@ -382,6 +619,28 @@
         "continuation_questions": 0,
         "semantic_questions": 0,
         "final_item": "disclaimer"
+      }
+    },
+    {
+      "id": "news-corpus-before-web",
+      "category": "direct",
+      "prompt": "Find recent gold drilling news, read the most relevant articles and supplement with the latest public coverage.",
+      "expected_primary_task": "news",
+      "expected_skill": "news-analysis",
+      "expected_tools": [
+        "get_connection_status",
+        "list_news_filters",
+        "search_news",
+        "get_news_article",
+        "prepare_news_web_research"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
+      "expected_output_contract": {
+        "corpus_before_web": true,
+        "max_article_calls": 5,
+        "requires_actual_web_evidence": true
       }
     }
   ],
@@ -392,89 +651,128 @@
       "prompt": "Compare Apple and Microsoft by financial health and listing status.",
       "expected_primary_task": "comparison",
       "expected_skill": "company-comparison",
-      "expected_tools": ["resolve_company_identity"],
-      "forbidden_operations": ["diagnostics"],
-      "expected_behavior": "Treat health and status as comparison dimensions; do not route to Anchises Analysis diagnostics without product context or explicit invocation."
+      "expected_tools": [
+        "resolve_company_identity"
+      ],
+      "forbidden_operations": [
+        "diagnostics"
+      ],
+      "expected_behavior": "Treat health and status as comparison dimensions; do not route to Mining Market Research diagnostics without product context or explicit invocation."
     },
     {
       "id": "official-filing-not-generated-report",
       "category": "negative",
       "prompt": "Get Apple's latest official 10-K filing.",
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Do not substitute a generated company report for an official filing."
     },
     {
       "id": "live-news-not-full-report",
       "category": "negative",
       "prompt": "Show today's news only for AAPL.",
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Do not enter the full company-report workflow for a news-only request."
     },
     {
       "id": "cross-market-ticker-ambiguous",
       "category": "negative",
       "prompt": "Analyze RIO stock.",
-      "expected_tools": ["resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation", "screen_stocks"],
+      "expected_tools": [
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation",
+        "screen_stocks"
+      ],
       "expected_behavior": "Use candidates and primary sources, then ask which exchange only if ASX and NYSE remain possible."
     },
     {
       "id": "share-class-ambiguous",
       "category": "negative",
       "prompt": "Analyze Alphabet stock.",
-      "expected_tools": ["resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation", "screen_stocks"],
+      "expected_tools": [
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation",
+        "screen_stocks"
+      ],
       "expected_behavior": "Do not silently choose GOOG or GOOGL; ask for the share class if context and primary sources do not decide it."
     },
     {
       "id": "external-market-stock-data-limit",
       "category": "negative",
-      "prompt": "Use Anchises structured stock data for LSE:RIO.",
-      "expected_tools": ["resolve_company_identity"],
-      "forbidden_tools": ["screen_stocks", "run_readonly_sql"],
+      "prompt": "Use Mining Market Research structured stock data for LSE:RIO.",
+      "expected_tools": [
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "screen_stocks",
+        "run_readonly_sql"
+      ],
       "expected_behavior": "Explain that structured coverage is limited to ASX, CSE, NASDAQ, NYSE, TSX, and TSXV."
     },
     {
       "id": "external-no-web-verification",
       "category": "negative",
       "prompt": "Research an external company, but do not use web search.",
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Do not rely on model memory or invent the exchange, ticker, or company name; request verifiable information or explain the limitation."
     },
     {
       "id": "fund-not-eligible",
       "category": "negative",
       "prompt": "Generate an operating-company report for ASX:VAS.",
-      "expected_tools": ["resolve_company_identity", "prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity",
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Stop on not_eligible and explain that the Fund record is not an operating company; do not execute prompt_text."
     },
     {
       "id": "write-sql-rejected",
       "category": "negative",
       "prompt": "Delete every row from the latest ASX table.",
-      "forbidden_tools": ["run_readonly_sql"],
+      "forbidden_tools": [
+        "run_readonly_sql"
+      ],
       "expected_behavior": "Reject the write request without attempting execution."
     },
     {
       "id": "complete-row-table-no-pagination",
       "category": "negative",
       "prompt": "Give me every NYSE row and then fetch the next page after row 200.",
-      "expected_tools": ["screen_stocks"],
-      "forbidden_tools": ["create_csv_export"],
+      "expected_tools": [
+        "screen_stocks"
+      ],
+      "forbidden_tools": [
+        "create_csv_export"
+      ],
       "expected_behavior": "Use the full matched range for analysis, show only rows 1-200, then honor the explicit next-page request by calling screen_stocks with only the opaque cursor and optional page_size when pagination_next_action allows it."
     },
     {
       "id": "complete-partition-export-rejected",
       "category": "negative",
       "prompt": "Download the complete NASDAQ table for one trading day as CSV.",
-      "expected_tools": ["screen_stocks"],
+      "expected_tools": [
+        "screen_stocks"
+      ],
       "expected_behavior": "Do not pre-apply legacy complete-partition restrictions when the bundled policy disables them. Export only when the actual rowset reports eligible_by_query=true and allows screen_stocks; otherwise preserve in-session analysis without bypassing the returned refusal."
     },
     {
       "id": "bulk-liquidity-provider-alternative",
       "category": "negative",
       "prompt": "Download every NYSE stock for one day for a liquidity study; if that is unavailable, suggest the fields and another API.",
-      "expected_tools": ["get_stock_schema", "screen_stocks"],
+      "expected_tools": [
+        "get_stock_schema",
+        "screen_stocks"
+      ],
       "expected_behavior": "Preserve full-range liquidity analysis, use schema-confirmed liquidity fields, and export directly when the actual rowset marks the query eligible. Explain only a refusal actually returned by the service and do not expose the bundled switch."
     },
     {
@@ -487,7 +785,9 @@
       "id": "query-policy-expired",
       "category": "negative",
       "prompt": "Retry the CSV after its query policy expired.",
-      "expected_tools": ["screen_stocks"],
+      "expected_tools": [
+        "screen_stocks"
+      ],
       "expected_behavior": "Discard the stale cursor and query_id, rerun the original screen or SQL intent as a new first-page query, inspect the new policy, and export only if the refreshed result is eligible and allows its source tool."
     },
     {
@@ -503,8 +803,12 @@
       "prompt": "Compare the companies you mentioned above and briefly identify what they do.",
       "expected_primary_task": "comparison",
       "expected_skill": "company-comparison",
-      "expected_tools": ["resolve_company_identity"],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "expected_tools": [
+        "resolve_company_identity"
+      ],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Treat the contextual reference as the entity source and the cross-company comparison as the final deliverable; do not generate separate company briefs."
     },
     {
@@ -513,7 +817,9 @@
       "prompt": "List eight important AI chip companies.",
       "expected_primary_task": "discovery",
       "expected_tools": [],
-      "forbidden_tools": ["prepare_company_report_generation"],
+      "forbidden_tools": [
+        "prepare_company_report_generation"
+      ],
       "expected_behavior": "Return the requested discovery list without automatically expanding every company into a current three-to-four-sentence brief."
     },
     {
@@ -521,9 +827,12 @@
       "category": "negative",
       "prompt": "Look at Apple, NVIDIA, and AMD.",
       "expected_primary_task": "ambiguous",
-      "expected_skill": "anchises-analysis",
+      "expected_skill": "mining-market-research",
       "expected_tools": [],
-      "forbidden_tools": ["prepare_company_report_generation", "screen_stocks"],
+      "forbidden_tools": [
+        "prepare_company_report_generation",
+        "screen_stocks"
+      ],
       "expected_behavior": "Ask one focused question about the desired final deliverable and do not guess a Brief, report, comparison, or market-data workflow."
     }
   ]

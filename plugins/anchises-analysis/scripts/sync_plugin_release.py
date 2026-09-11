@@ -13,14 +13,14 @@ from typing import Any, Sequence
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = PLUGIN_ROOT.parents[1]
-REFERENCE_ROOT = PLUGIN_ROOT / "skills" / "anchises-analysis" / "references"
+REFERENCE_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research" / "references"
 PLATFORM_PATHS = {
     "codex": (
         PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
         REFERENCE_ROOT / "plugin-release.json",
     ),
     "claude": (
-        REPOSITORY_ROOT / ".claude-plugin" / "plugin.json",
+        PLUGIN_ROOT / ".claude-plugin" / "plugin.json",
         REFERENCE_ROOT / "plugin-release-claude.json",
     ),
 }

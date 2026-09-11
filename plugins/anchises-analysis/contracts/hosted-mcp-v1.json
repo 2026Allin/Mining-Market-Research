@@ -18,12 +18,12 @@
     "mcp_endpoint": "https://mcp.anchisesdata.com/mcp",
     "access_mode": "public_noauth",
     "protocol_version": "2025-06-18",
-    "server_name": "Anchises Analysis",
-    "server_version": "0.8.0",
-    "instructions": "Anchises Analysis is a read-only stock screening and analysis service. In public access mode no login is required; all callers share global rate and concurrency limits. Full market datasets may be used for server-side filtering and aggregate analysis. Row-level results shown to the host are limited to 200 rows per call and may continue only through the returned short-lived opaque cursor. Restricted mode allows at most 1,000 browsed rows per registered query; bulk mode allows continuation within its 200,000-row hard result limit. A Top-N value bounds the complete logical analysis and CSV result, not the display page. User-authored SQL OFFSET remains forbidden; SQL continuation requires an explicit stable ORDER BY. When next_cursor is present, tell the user which rows are shown and offer the next page; do not traverse many pages unless the user asks. CSV eligibility and file limits are controlled by the active server data policy and are returned in each rowset's export_policy. When restrictions are enabled, never reconstruct a dataset by splitting filters, dates, fields, or sort ranges. When bulk mode is enabled, complete structured screens and previously validated bounded or aggregate SQL results may be downloaded within the reported hard limits. If export is refused, continue with server-side analysis or suggest a compatible query. CSV download URLs are bearer capabilities and must not be shared. Before stock-data or company-report calls, resolve a company name or ticker to exchange, ticker, and company name; use chat context and primary web sources to disambiguate when needed. Company-report requests always use prepare_company_report_generation and live host-side research; the server does not read cached reports, PDFs, or expiry state. It only selects and returns one sector prompt. Anchises Analysis does not search the web or write, cache, upload, save, or publish the resulting report; a compatible host must perform live web research and reply in the current conversation. External, inactive, delisted, and unmatched companies use the Others prompt and require identity and listing-status verification. ETF and fund instruments are not eligible. Connection status reports only service access, authentication state, published limits, and the active data policy. Never ask users to paste credentials or tokens into chat.",
+    "server_name": "Mining Market Research",
+    "server_version": "0.9.1",
+    "instructions": "Mining Market Research is a read-only stock screening and analysis service. In public access mode no login is required; all callers share global rate and concurrency limits. Full market datasets may be used for server-side filtering and aggregate analysis. Price history is stored in stock_daily; discover markets with get_available_exchanges and trading dates with get_available_dates. list_stock_tables lists distinct physical tables. Row-level results shown to the host are limited to 200 rows per call and may continue only through the returned short-lived opaque cursor. Restricted mode allows at most 1,000 browsed rows per registered query; bulk mode allows continuation within its 200,000-row hard result limit. A Top-N value bounds the complete logical analysis and CSV result, not the display page. User-authored SQL OFFSET remains forbidden; SQL continuation requires an explicit stable ORDER BY. When next_cursor is present, tell the user which rows are shown and offer the next page; do not traverse many pages unless the user asks. CSV eligibility and file limits are controlled by the active server data policy and are returned in each rowset's export_policy. When restrictions are enabled, never reconstruct a dataset by splitting filters, dates, fields, or sort ranges. When bulk mode is enabled, complete structured screens and previously validated bounded or aggregate SQL results may be downloaded within the reported hard limits. If export is refused, continue with server-side analysis or suggest a compatible query. CSV download URLs are bearer capabilities and must not be shared. Before stock-data or company-report calls, resolve a company name or ticker to exchange, ticker, and company name; use chat context and primary web sources to disambiguate when needed. Company-report requests always use prepare_company_report_generation and live host-side research; the server does not read cached reports, PDFs, or expiry state. It only selects and returns one sector prompt. Mining Market Research does not search the web or write, cache, upload, save, or publish the resulting report; a compatible host must perform live web research and reply in the current conversation. External, inactive, delisted, and unmatched companies use the Others prompt and require identity and listing-status verification. ETF and fund instruments are not eligible. For news questions, put the user utterance and English search terms in search_news.q, stay inside the current NEWS_ACCESS option, review headline cards first, and fetch at most five full articles with get_news_article for one user question. Mining and covered news options follow the dynamic exchange catalog. An empty news result means no matching articles, not an unsupported exchange. Explicit invalid or out-of-policy filters reject the search without dropping them. Search the local corpus before asking the host to browse; prepare_news_web_research only prepares a prompt and does not fetch pages. Connection status reports only service access, authentication state, published limits, the active data policy, and the current news access option. Never ask users to paste credentials or tokens into chat.",
     "sync_state": "live",
-    "synced_at": "2026-08-06T02:19:45+00:00",
-    "descriptor_sha256": "dc11bd5e6e5c3cf15a003fba8f05006584ee4b259253f4351f0b22bdd5eb73c9"
+    "synced_at": "2026-09-11T14:21:58+00:00",
+    "descriptor_sha256": "d416ab0feae2668c14884d0d1df7072bba200f96d42e2c85830e11fe65a7a2d3"
   },
   "production": {
     "mcp_endpoint": "https://mcp.anchisesdata.com/mcp",
@@ -50,12 +50,12 @@
       "predefined"
     ],
     "scopes_supported": [
-      "openid",
       "email",
+      "export.create",
+      "openid",
       "profile",
-      "stock.read",
       "schema.read",
-      "export.create"
+      "stock.read"
     ],
     "tool_scopes": {
       "get_connection_status": [],
@@ -68,6 +68,7 @@
       "get_stock_schema": [
         "schema.read"
       ],
+      "get_available_dates": [],
       "list_stock_tables": [
         "schema.read"
       ],
@@ -89,6 +90,10 @@
       "prepare_company_report_generation": [
         "stock.read"
       ],
+      "list_news_filters": [],
+      "search_news": [],
+      "get_news_article": [],
+      "prepare_news_web_research": [],
       "create_csv_export": [
         "export.create"
       ]
@@ -177,8 +182,8 @@
   "tools": [
     {
       "name": "get_connection_status",
-      "title": "Get Anchises Analysis connection status",
-      "description": "Use this when you need to check whether Anchises Analysis public access is available, whether sign-in is required, the published service limits, or the active data policy. It does not query stock data.",
+      "title": "Get Mining Market Research connection status",
+      "description": "Use this when you need to check whether Mining Market Research public access is available, whether sign-in is required, the published service limits, the active data policy, or the current news access option. It does not query stock or news data.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -324,6 +329,77 @@
               }
             ]
           },
+          "news_policy": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Current NEWS_ACCESS option name. Callers cannot change it."
+                  },
+                  "filters": {
+                    "type": "array",
+                    "description": "Expanded tag ceiling for the current option.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "exchange",
+                            "company_type",
+                            "metal",
+                            "event",
+                            "geography"
+                          ],
+                          "description": "News tag kind this filter applies to."
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 64
+                          },
+                          "description": "Allowed values for this kind, including exchange aliases."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "any"
+                          ],
+                          "description": "Same-kind values are OR-combined."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "kind",
+                        "values",
+                        "mode"
+                      ]
+                    }
+                  },
+                  "epoch": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "description": "Opaque news-access epoch. Rotates when the option changes."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "filters",
+                  "epoch"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "data_policy": {
             "oneOf": [
               {
@@ -426,11 +502,12 @@
           "authentication",
           "coverage",
           "limits",
-          "data_policy"
+          "data_policy",
+          "news_policy"
         ]
       },
       "annotations": {
-        "title": "Get Anchises Analysis connection status",
+        "title": "Get Mining Market Research connection status",
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
@@ -697,7 +774,7 @@
             ],
             "minLength": 2,
             "maxLength": 16,
-            "description": "Optional uppercase exchange code from get_available_exchanges. Omit or pass null to combine fields from all sampled exchanges.",
+            "description": "Optional uppercase exchange code from get_available_exchanges. Omit or pass null for the shared stock_daily schema. All exchanges use the same fields.",
             "examples": [
               "ASX",
               "NASDAQ"
@@ -802,9 +879,224 @@
       ]
     },
     {
+      "name": "get_available_dates",
+      "title": "Get available trading dates",
+      "description": "Use this when you need dates with stock_daily records for discovered exchanges. Returns exchange and trade_date pairs with an opaque continuation cursor.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "exchanges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16,
+              "description": "Uppercase exchange code returned by get_available_exchanges."
+            },
+            "maxItems": 50,
+            "uniqueItems": true,
+            "description": "Optional discovered exchange codes; omit for all markets.",
+            "examples": [
+              [
+                "ASX"
+              ],
+              [
+                "NASDAQ",
+                "NYSE"
+              ]
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Inclusive earliest trading date, or null."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Inclusive latest trading date, or null."
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096,
+            "description": "Opaque next_cursor returned by the immediately preceding page of the same tool. Omit or pass null for the first page; never construct or edit this value."
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 200,
+            "description": "Maximum rows to return on this page. Defaults to 200.",
+            "examples": [
+              50,
+              200
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "Discover actual trading dates, optionally by market."
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "data_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "exchange": {
+                      "type": "string",
+                      "description": "Discovered exchange code."
+                    },
+                    "trade_date": {
+                      "type": "string",
+                      "format": "date",
+                      "description": "A date with stored stock records."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "exchange",
+                    "trade_date"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "items"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "quota": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "global",
+                  "user"
+                ]
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "period_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "reset_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "remaining",
+              "limit",
+              "period_seconds",
+              "reset_at"
+            ]
+          },
+          "page": {
+            "type": "object",
+            "properties": {
+              "row_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "total_count": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 4096,
+                "description": "Opaque next_cursor returned by the immediately preceding page of the same tool. Omit or pass null for the first page; never construct or edit this value."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "row_count",
+              "total_count",
+              "truncated",
+              "next_cursor"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_date",
+          "data",
+          "warnings",
+          "quota",
+          "page"
+        ]
+      },
+      "annotations": {
+        "title": "Get available trading dates",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "securitySchemes": [
+          {
+            "type": "noauth"
+          }
+        ]
+      },
+      "securitySchemes": [
+        {
+          "type": "noauth"
+        }
+      ]
+    },
+    {
       "name": "list_stock_tables",
       "title": "List stock tables",
-      "description": "Use this when you need allowlisted historical table names for SQL or schema inspection; it does not return stock rows.",
+      "description": "Use this when you need distinct allowlisted physical table names for SQL or schema inspection. Use get_available_dates for trading dates; it does not return stock rows.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -829,28 +1121,6 @@
               ]
             ]
           },
-          "start_date": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date",
-            "description": "Optional inclusive lower date bound in YYYY-MM-DD format. Omit or pass null for no lower bound.",
-            "examples": [
-              "2026-07-01"
-            ]
-          },
-          "end_date": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date",
-            "description": "Optional inclusive upper date bound in YYYY-MM-DD format. Omit or pass null for no upper bound.",
-            "examples": [
-              "2026-07-15"
-            ]
-          },
           "cursor": {
             "type": [
               "string",
@@ -872,7 +1142,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Filter allowlisted stock table names by exchange/date and paginate the result."
+        "description": "Filter the physical table catalog by exchange and paginate the result."
       },
       "outputSchema": {
         "type": "object",
@@ -1022,7 +1292,7 @@
             "description": "One to 100 exact table names returned by list_stock_tables.",
             "examples": [
               [
-                "daily_20260715_asx"
+                "stock_daily"
               ]
             ]
           }
@@ -1727,7 +1997,7 @@
             "maxLength": 100000,
             "description": "Exactly one SELECT or WITH...SELECT statement using allowlisted stock tables. Double-quoted allowlisted table names are normalized to MySQL backticks; string values are unchanged. DDL, DML, comments, and multiple statements are rejected.",
             "examples": [
-              "SELECT TICKER, Price_Close FROM daily_20260715_asx LIMIT 20"
+              "SELECT COUNT(*) AS count FROM stock_daily"
             ]
           }
         },
@@ -1865,7 +2135,7 @@
             "maxLength": 100000,
             "description": "Exactly one SELECT or WITH...SELECT statement using table names from list_stock_tables and columns from get_table_schema. Double-quoted allowlisted table names are normalized to MySQL backticks before execution; string values are unchanged.",
             "examples": [
-              "SELECT TICKER, Price_Close FROM daily_20260715_asx ORDER BY Price_Close DESC LIMIT 20"
+              "SELECT symbol, raw_close FROM stock_daily WHERE exchange = 'ASX' AND symbol = 'BHP' AND trade_date = '2026-07-15' ORDER BY trade_date, symbol"
             ]
           },
           "max_rows": {
@@ -2265,7 +2535,7 @@
     {
       "name": "resolve_company_identity",
       "title": "Resolve company identity",
-      "description": "Use this when the user supplies a company name or ticker and you need a canonical exchange, ticker, and company name before calling stock-data or company-report tools. It searches only the six supported exchange master tables. Exact unique matches are resolved; cross-market, share-class, prefix, and contains matches remain ambiguous.",
+      "description": "Use this when the user supplies a company name or ticker and you need a canonical exchange, ticker, and company name before calling stock-data or company-report tools. It searches only the dynamically discovered exchange master tables. Exact unique matches are resolved; cross-market, share-class, prefix, and contains matches remain ambiguous.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2288,7 +2558,7 @@
             "minLength": 2,
             "maxLength": 20,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{1,19}$",
-            "description": "Optional exchange code established from chat context or public-source verification. Codes outside the six supported markets are accepted but produce not_found_in_supported_markets.",
+            "description": "Optional exchange code established from chat context or public-source verification. Codes outside the discovered markets are accepted but produce not_found_in_supported_markets.",
             "examples": [
               "NASDAQ",
               "ASX",
@@ -2559,7 +2829,7 @@
     {
       "name": "prepare_company_report_generation",
       "title": "Prepare host-side company report research",
-      "description": "Use this when the user asks for company research or a company report and the host has established exchange, ticker, and company name. It always prepares a prompt for live host-side web research; it never reads a cached report, report PDF, or expiry state. Supported active masters select their classified sector, while inactive, delisted, unmatched, and external-market companies use Others. ETF and fund records are not eligible. Anchises Analysis does not search, write, cache, upload, or save the report.",
+      "description": "Use this when the user asks for company research or a company report and the host has established exchange, ticker, and company name. It always prepares a prompt for live host-side web research; it never reads a cached report, report PDF, or expiry state. Supported active masters select their classified sector, while inactive, delisted, unmatched, and external-market companies use Others. ETF and fund records are not eligible. Mining Market Research does not search, write, cache, upload, or save the report.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2568,7 +2838,7 @@
             "minLength": 2,
             "maxLength": 20,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{1,19}$",
-            "description": "Verified current or historical exchange code. It may be outside the six structured-data markets.",
+            "description": "Verified current or historical exchange code. It may be outside the currently structured-data markets.",
             "examples": [
               "ASX",
               "NASDAQ",
@@ -2786,7 +3056,7 @@
                   "run_host_web_research",
                   null
                 ],
-                "description": "Signals that the compatible host\u2014not Anchises Analysis\u2014must perform live web research; null unless status is ready."
+                "description": "Signals that the compatible host\u2014not Mining Market Research\u2014must perform live web research; null unless status is ready."
               }
             },
             "additionalProperties": false,
@@ -2857,6 +3127,993 @@
       },
       "annotations": {
         "title": "Prepare host-side company report research",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "securitySchemes": [
+          {
+            "type": "noauth"
+          }
+        ]
+      },
+      "securitySchemes": [
+        {
+          "type": "noauth"
+        }
+      ]
+    },
+    {
+      "name": "list_news_filters",
+      "title": "List news filters",
+      "description": "Use this when you need the official English news tag and exchange values allowed by the current NEWS_ACCESS option before calling search_news. It returns a facet word list, not synonyms; map user language onto these values yourself. Exchange facets reflect existing articles; news_policy reports the allowed scope. A missing facet does not mean the exchange is unsupported.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "description": "No arguments. Returns the current news option and allowed facets."
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "data_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "news_policy": {
+                "description": "Current NEWS_ACCESS option, expanded filters, and epoch.",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Current NEWS_ACCESS option name. Callers cannot change it."
+                  },
+                  "filters": {
+                    "type": "array",
+                    "description": "Expanded tag ceiling for the current option.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "exchange",
+                            "company_type",
+                            "metal",
+                            "event",
+                            "geography"
+                          ],
+                          "description": "News tag kind this filter applies to."
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 64
+                          },
+                          "description": "Allowed values for this kind, including exchange aliases."
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "any"
+                          ],
+                          "description": "Same-kind values are OR-combined."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "kind",
+                        "values",
+                        "mode"
+                      ]
+                    }
+                  },
+                  "epoch": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "description": "Opaque news-access epoch. Rotates when the option changes."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "filters",
+                  "epoch"
+                ]
+              },
+              "exchanges": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 16
+                },
+                "description": "Canonical exchanges with articles visible under the current option."
+              },
+              "metals": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "description": "Official metal tag values visible under the current option."
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "description": "Official event tag values visible under the current option."
+              },
+              "geographies": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "description": "Official geography tag values visible under the current option."
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "description": "Source slugs present in the visible news corpus."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "news_policy",
+              "exchanges",
+              "metals",
+              "events",
+              "geographies",
+              "sources"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "quota": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "global",
+                  "user"
+                ]
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "period_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "reset_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "remaining",
+              "limit",
+              "period_seconds",
+              "reset_at"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_date",
+          "data",
+          "warnings",
+          "quota"
+        ]
+      },
+      "annotations": {
+        "title": "List news filters",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "securitySchemes": [
+          {
+            "type": "noauth"
+          }
+        ]
+      },
+      "securitySchemes": [
+        {
+          "type": "noauth"
+        }
+      ]
+    },
+    {
+      "name": "search_news",
+      "title": "Search news",
+      "description": "Use this when the user asks about mining, exchange, or company news. Put the user utterance and English search terms in q. Invalid or out-of-scope filters reject the query without dropping them. Returns headline cards only; pick at most five articles and call get_news_article for those. Do not fetch every card. Articles without a company_type tag are excluded when the current option requires MINING.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "User utterance plus English search terms. The server tokenizes this string; Chinese tokens are not sent to the article body index.",
+            "examples": [
+              "\u4e0a\u5468\u9ec4\u91d1\u94bb\u63a2 gold drill"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "maxItems": 10,
+            "uniqueItems": true,
+            "description": "Optional official tag values copied from list_news_filters. Matching is case-insensitive. Values outside the current NEWS_ACCESS ceiling reject the query. Facet titles such as Drill Results are accepted.",
+            "examples": [
+              [
+                "gold",
+                "Drill Results"
+              ]
+            ]
+          },
+          "exchanges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16
+            },
+            "maxItems": 100,
+            "uniqueItems": true,
+            "description": "Optional exchange codes used to narrow within the current option. Codes outside the option reject the query; filters are never dropped.",
+            "examples": [
+              [
+                "TSXV",
+                "ASX",
+                "LSE"
+              ]
+            ]
+          },
+          "exchange": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 2,
+            "maxLength": 16,
+            "description": "Optional issuer exchange from resolve_company_identity. Must be paired with ticker. Rejected when outside the current option.",
+            "examples": [
+              "TSXV"
+            ]
+          },
+          "ticker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 32,
+            "description": "Optional issuer ticker from resolve_company_identity. Must be paired with exchange.",
+            "examples": [
+              "GOT"
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Optional inclusive published-date lower bound in YYYY-MM-DD. The window cannot exceed 365 days.",
+            "examples": [
+              "2026-07-01"
+            ]
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Optional inclusive published-date upper bound in YYYY-MM-DD. The window cannot exceed 365 days.",
+            "examples": [
+              "2026-08-01"
+            ]
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20,
+            "description": "Cards to return on this page. Defaults to 20 and cannot exceed 50.",
+            "examples": [
+              20,
+              50
+            ]
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096,
+            "description": "Opaque next_cursor returned by the immediately preceding page of the same tool. Omit or pass null for the first page; never construct or edit this value."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Search the news corpus inside the current NEWS_ACCESS ceiling. On continuation send only the opaque cursor and optional page_size."
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "data_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "news_code": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Stable article identifier used by get_news_article."
+                    },
+                    "title": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "description": "Article headline."
+                    },
+                    "summary": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 2000,
+                      "description": "Short standfirst or excerpt. Never the full body."
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "maxItems": 40,
+                      "description": "Displayed tag values for this article."
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 128,
+                      "description": "Publisher display name."
+                    },
+                    "published_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Publication timestamp when known."
+                    },
+                    "source_url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uri",
+                      "maxLength": 2048,
+                      "description": "Original public article URL when it is a safe http(s) link."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "news_code",
+                    "title",
+                    "summary",
+                    "tags",
+                    "source",
+                    "published_at",
+                    "source_url"
+                  ]
+                },
+                "maxItems": 50,
+                "description": "Headline cards for this page. Bodies are omitted."
+              },
+              "interpretation": {
+                "description": "How the server interpreted q, tags, and exchanges.",
+                "type": "object",
+                "properties": {
+                  "accepted_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Tags kept after NEWS_ACCESS validation. Matching is case-insensitive; values are returned in lowercase."
+                  },
+                  "ignored_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Unknown or out-of-scope tags that were dropped."
+                  },
+                  "content_terms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Tokenized query terms used for full-text matching."
+                  },
+                  "fulltext_skipped": {
+                    "type": "boolean",
+                    "description": "True when q produced no usable tokens and latest-in-option was used."
+                  },
+                  "applied_option": {
+                    "type": "string",
+                    "description": "NEWS_ACCESS option name applied to this search."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "accepted_tags",
+                  "ignored_tags",
+                  "content_terms",
+                  "fulltext_skipped",
+                  "applied_option"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "items",
+              "interpretation"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "quota": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "global",
+                  "user"
+                ]
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "period_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "reset_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "remaining",
+              "limit",
+              "period_seconds",
+              "reset_at"
+            ]
+          },
+          "page": {
+            "type": "object",
+            "properties": {
+              "row_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "total_count": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 4096,
+                "description": "Opaque next_cursor returned by the immediately preceding page of the same tool. Omit or pass null for the first page; never construct or edit this value."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "row_count",
+              "total_count",
+              "truncated",
+              "next_cursor"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_date",
+          "data",
+          "warnings",
+          "quota",
+          "page"
+        ]
+      },
+      "annotations": {
+        "title": "Search news",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "securitySchemes": [
+          {
+            "type": "noauth"
+          }
+        ]
+      },
+      "securitySchemes": [
+        {
+          "type": "noauth"
+        }
+      ]
+    },
+    {
+      "name": "get_news_article",
+      "title": "Get news article",
+      "description": "Use this when you have selected a news_code from search_news cards and need the truncated article body. Call it at most five times for one user question. Articles outside the current NEWS_ACCESS option come back as not_found.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "news_code": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Exact news_code from a preceding search_news card.",
+            "examples": [
+              100000000001
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "Fetch one news article that remains inside the current NEWS_ACCESS option.",
+        "required": [
+          "news_code"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "data_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "found",
+                  "not_found"
+                ],
+                "description": "found when the article is inside the current NEWS_ACCESS option."
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 1000,
+                "description": "Safe user-facing explanation of the lookup result."
+              },
+              "article": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "news_code": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Article identifier."
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "description": "Article headline."
+                      },
+                      "summary": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 2000,
+                        "description": "Standfirst or excerpt."
+                      },
+                      "body_text": {
+                        "type": "string",
+                        "maxLength": 20000,
+                        "description": "Truncated plain-text body. Markup is stripped."
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 64
+                        },
+                        "description": "Displayed tag values."
+                      },
+                      "source": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 128,
+                        "description": "Publisher display name."
+                      },
+                      "published_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "Publication timestamp when known."
+                      },
+                      "source_url": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uri",
+                        "maxLength": 2048,
+                        "description": "Original public article URL when it is a safe http(s) link."
+                      },
+                      "content_truncated": {
+                        "type": "boolean",
+                        "description": "True when body_text was cut to the 20,000-character limit."
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "news_code",
+                      "title",
+                      "summary",
+                      "body_text",
+                      "tags",
+                      "source",
+                      "published_at",
+                      "source_url",
+                      "content_truncated"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "message",
+              "article"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "quota": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "global",
+                  "user"
+                ]
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "period_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "reset_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "remaining",
+              "limit",
+              "period_seconds",
+              "reset_at"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_date",
+          "data",
+          "warnings",
+          "quota"
+        ]
+      },
+      "annotations": {
+        "title": "Get news article",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "securitySchemes": [
+          {
+            "type": "noauth"
+          }
+        ]
+      },
+      "securitySchemes": [
+        {
+          "type": "noauth"
+        }
+      ]
+    },
+    {
+      "name": "prepare_news_web_research",
+      "title": "Prepare host-side news web research",
+      "description": "Use this when the local news corpus is empty or the user wants the latest public coverage after a database search. It returns a host-side research prompt; Mining Market Research does not fetch web pages.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "User utterance plus English search terms used for the database search.",
+            "examples": [
+              "\u4e0a\u5468\u9ec4\u91d1\u94bb\u63a2 gold drill"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "maxItems": 10,
+            "description": "Optional tags already accepted or intended for the search."
+          },
+          "exchanges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16
+            },
+            "maxItems": 100,
+            "description": "Optional exchanges already accepted or intended for the search."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Prepare one host-side web-research prompt for news that may not be in the local corpus. The server does not browse.",
+        "required": [
+          "q"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "data_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ready"
+                ],
+                "description": "Preparation result. ready includes a host-execution prompt."
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 1000,
+                "description": "Safe user-facing explanation of the preparation result."
+              },
+              "prompt_text": {
+                "type": "string",
+                "maxLength": 8000,
+                "description": "Instructions for the compatible host to search the public web."
+              },
+              "next_action": {
+                "type": "string",
+                "enum": [
+                  "run_host_web_research"
+                ],
+                "description": "Signals that the host\u2014not Mining Market Research\u2014must browse."
+              },
+              "interpretation": {
+                "description": "Normalized query terms included in the prompt.",
+                "type": "object",
+                "properties": {
+                  "accepted_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Tags kept after NEWS_ACCESS validation. Matching is case-insensitive; values are returned in lowercase."
+                  },
+                  "ignored_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Unknown or out-of-scope tags that were dropped."
+                  },
+                  "content_terms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Tokenized query terms used for full-text matching."
+                  },
+                  "fulltext_skipped": {
+                    "type": "boolean",
+                    "description": "True when q produced no usable tokens and latest-in-option was used."
+                  },
+                  "applied_option": {
+                    "type": "string",
+                    "description": "NEWS_ACCESS option name applied to this search."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "accepted_tags",
+                  "ignored_tags",
+                  "content_terms",
+                  "fulltext_skipped",
+                  "applied_option"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "message",
+              "prompt_text",
+              "next_action",
+              "interpretation"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "quota": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "global",
+                  "user"
+                ]
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "period_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "reset_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "remaining",
+              "limit",
+              "period_seconds",
+              "reset_at"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_date",
+          "data",
+          "warnings",
+          "quota"
+        ]
+      },
+      "annotations": {
+        "title": "Prepare host-side news web research",
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,

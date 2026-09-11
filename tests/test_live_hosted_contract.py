@@ -96,7 +96,9 @@ class LiveHostedContractTest(unittest.TestCase):
         self.assertEqual(health["authentication"], "not_required")
 
         _, initialized = self._client("handshake")
-        self.assertEqual(initialized["serverInfo"]["name"], "Anchises Analysis")
+        self.assertEqual(
+            initialized["serverInfo"]["name"], "Mining Market Research"
+        )
         self.assertEqual(initialized["serverInfo"]["version"], health["version"])
         self.assertEqual(
             initialized["serverInfo"]["websiteUrl"],
@@ -110,7 +112,7 @@ class LiveHostedContractTest(unittest.TestCase):
             expected_mode="public_noauth",
         )
         self.assertTrue(contracts_match(self.contract, live))
-        self.assertEqual(len(live["tools"]), 12)
+        self.assertEqual(len(live["tools"]), 17)
         names = [tool["name"] for tool in live["tools"]]
         self.assertIn("resolve_company_identity", names)
         self.assertFalse(

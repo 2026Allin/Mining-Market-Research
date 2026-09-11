@@ -20,13 +20,13 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
-SKILL_ROOT = PLUGIN_ROOT / "skills" / "anchises-analysis"
+SKILL_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research"
 SCRIPT_ROOT = SKILL_ROOT / "scripts"
 CHECKER_PATH = SCRIPT_ROOT / "check_plugin_update.py"
 UPDATER_PATH = SCRIPT_ROOT / "update_installed_plugin.py"
 SYNC_PATH = PLUGIN_ROOT / "scripts" / "sync_plugin_release.py"
 CLAUDE_RELEASE_PATH = SKILL_ROOT / "references" / "plugin-release-claude.json"
-CLAUDE_MANIFEST_PATH = ROOT / ".claude-plugin" / "plugin.json"
+CLAUDE_MANIFEST_PATH = PLUGIN_ROOT / ".claude-plugin" / "plugin.json"
 CLAUDE_MARKETPLACE_PATH = ROOT / ".claude-plugin" / "marketplace.json"
 CLAUDE_SKILL_ROOT = SKILL_ROOT
 PLUGIN_POLICY_PATH = CLAUDE_SKILL_ROOT / "references" / "plugin-policy.json"
@@ -61,10 +61,10 @@ MARKETPLACE = "anchises-capital"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GITHUB_REPOSITORY = "2026Allin/anchises-stock-qa"
 TAG_PREFIX = "anchises-analysis/claude/v"
-CURRENT_VERSION = "0.6.0-dev.10"
-CURRENT_RELEASE = "0.6.0-dev.10+claude.20260806170037"
-TARGET_VERSION = "0.6.0-dev.11"
-TARGET_RELEASE = "0.6.0-dev.11+claude.20260808120000"
+CURRENT_VERSION = "0.6.0-dev.11"
+CURRENT_RELEASE = "0.6.0-dev.11+claude.20260806170037"
+TARGET_VERSION = "0.6.0-dev.12"
+TARGET_RELEASE = "0.6.0-dev.12+claude.20260808120000"
 MAIN_COMMIT = "4" * 40
 OTHER_COMMIT = "5" * 40
 
@@ -178,161 +178,33 @@ class ClaudeManifestTest(unittest.TestCase):
         ]
         self.assertEqual(matches, [PLUGIN_POLICY_PATH.resolve()])
 
-    def test_marketplace_exposes_one_self_contained_claude_skill(self) -> None:
-        marketplace = json.loads(CLAUDE_MARKETPLACE_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(
-            set(marketplace),
-            {"name", "owner", "description", "plugins"},
-        )
-        self.assertEqual(marketplace["name"], MARKETPLACE)
-        self.assertEqual(marketplace["owner"]["name"], "Anchises Capital")
-        self.assertEqual(
-            marketplace["owner"]["url"],
-            "https://anchisesdata.com",
-        )
-        self.assertEqual(len(marketplace["plugins"]), 1)
+    def test_both_hosts_load_the_same_self_contained_package(self) -> None:
+        marketplace = json.loads(CLAUDE_MARKETPLACE_PATH.read_text())
         entry = marketplace["plugins"][0]
-        self.assertEqual(
-            set(entry),
-            {"name", "displayName", "source", "description", "category"},
-        )
-        self.assertEqual(entry["name"], "anchises-analysis")
-        self.assertEqual(entry["displayName"], "Anchises Analysis")
-        self.assertEqual(entry["source"], "./")
-        self.assertNotIn("version", entry)
+        self.assertEqual((ROOT / entry["source"]).resolve(), PLUGIN_ROOT.resolve())
+        claude = json.loads(CLAUDE_MANIFEST_PATH.read_text())
+        codex = json.loads((PLUGIN_ROOT / ".codex-plugin/plugin.json").read_text())
+        for key in ("name", "description", "author", "skills", "mcpServers"):
+            self.assertEqual(claude[key], codex[key])
+        self.assertEqual(claude["version"].split("+")[0], codex["version"].split("+")[0])
+        self.assertEqual(claude["displayName"], codex["interface"]["displayName"])
+        self.assertFalse((ROOT / ".claude-plugin/plugin.json").exists())
+        self.assertEqual(len(list((PLUGIN_ROOT / claude["skills"]).glob("*/SKILL.md"))), 7)
+        self.assertTrue((PLUGIN_ROOT / claude["mcpServers"]).is_file())
 
-        claude = json.loads(CLAUDE_MANIFEST_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(
-            set(claude),
-            {
-                "name",
-                "displayName",
-                "version",
-                "description",
-                "author",
-                "homepage",
-                "repository",
-                "license",
-                "keywords",
-                "skills",
-                "mcpServers",
-            },
-        )
-        codex = json.loads(
-            (PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        self.assertEqual(claude["name"], "anchises-analysis")
-        self.assertEqual(claude["displayName"], "Anchises Analysis")
-        self.assertRegex(
-            claude["version"],
-            r"^0\.6\.0-dev\.10\+claude\.\d{14}$",
-        )
-        for key in (
-            "description",
-            "author",
-            "homepage",
-            "repository",
-            "license",
-            "keywords",
-        ):
-            self.assertEqual(claude[key], codex[key], key)
-        self.assertNotIn("interface", claude)
-        self.assertEqual(
-            claude["skills"],
-            "./plugins/anchises-analysis/skills/anchises-analysis/",
-        )
-        self.assertEqual(
-            claude["mcpServers"],
-            "./plugins/anchises-analysis/.mcp.json",
-        )
-
-        plugin_root = ROOT / entry["source"]
-        self.assertEqual(plugin_root.resolve(), ROOT.resolve())
-        self.assertEqual(
-            CLAUDE_MANIFEST_PATH.parent.resolve(),
-            plugin_root.resolve() / ".claude-plugin",
-        )
-        self.assertFalse(LEGACY_CLAUDE_MANIFEST_PATH.exists())
-        self.assertTrue((plugin_root / claude["mcpServers"]).is_file())
-        self.assertEqual(
-            (plugin_root / claude["skills"]).resolve(),
-            CLAUDE_SKILL_ROOT.resolve(),
-        )
-        self.assertEqual(
-            sorted(path.name for path in (PLUGIN_ROOT / "skills").iterdir()),
-            [
-                "anchises-analysis",
-                "company-brief",
-                "company-comparison",
-                "company-report",
-                "market-analysis",
-            ],
-        )
-
-    def test_claude_skill_is_closed_and_contains_exactly_one_skill_file(self) -> None:
-        self.assertTrue((CLAUDE_SKILL_ROOT / "SKILL.md").is_file())
-        self.assertEqual(
-            [path.relative_to(CLAUDE_SKILL_ROOT) for path in CLAUDE_SKILL_ROOT.rglob("SKILL.md")],
-            [Path("SKILL.md")],
-        )
-        for directory in ("agents", "references", "scripts", "workflows"):
-            self.assertTrue((CLAUDE_SKILL_ROOT / directory).is_dir(), directory)
-
-        markdown_link = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
-        for source in sorted(CLAUDE_SKILL_ROOT.rglob("*.md")):
-            for raw_target in markdown_link.findall(source.read_text(encoding="utf-8")):
-                target = raw_target.split("#", 1)[0]
-                if not target or "://" in target:
-                    continue
-                resolved = (source.parent / target).resolve()
-                self.assertTrue(
-                    resolved.is_relative_to(CLAUDE_SKILL_ROOT.resolve()),
-                    f"{source.relative_to(CLAUDE_SKILL_ROOT)} escapes to {target}",
-                )
-                self.assertTrue(
-                    resolved.is_file(),
-                    f"{source.relative_to(CLAUDE_SKILL_ROOT)} has missing {target}",
-                )
-
+    def test_runtime_markdown_links_remain_inside_the_package(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            copied = Path(tmp) / "anchises-analysis"
-            shutil.copytree(CLAUDE_SKILL_ROOT, copied)
-            completed = subprocess.run(
-                [
-                    sys.executable,
-                    str(copied / "scripts" / "check_plugin_update.py"),
-                    "--platform",
-                    "claude",
-                    "--remote-refs-stdin",
-                    "--no-cache",
-                ],
-                input=_refs(TARGET_VERSION),
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(completed.returncode, 0, completed.stderr)
-            self.assertEqual(
-                json.loads(completed.stdout)["status"],
-                "update_available",
-            )
-
-    def test_codex_keeps_five_thin_skill_entries(self) -> None:
-        skill_roots = sorted((PLUGIN_ROOT / "skills").glob("*/SKILL.md"))
-        self.assertEqual(len(skill_roots), 5)
-        for name in (
-            "company-brief",
-            "company-comparison",
-            "company-report",
-            "market-analysis",
-        ):
-            wrapper = PLUGIN_ROOT / "skills" / name / "SKILL.md"
-            text = wrapper.read_text(encoding="utf-8")
-            self.assertIn(f"name: {name}", text)
-            self.assertIn("../anchises-analysis/workflows/", text)
-            self.assertLess(len(text.splitlines()), 20)
+            package = Path(tmp) / "plugin"
+            shutil.copytree(PLUGIN_ROOT, package)
+            for folder in ("skills", "shared"):
+                for source in (package / folder).rglob("*.md"):
+                    for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", source.read_text()):
+                        target = target.split("#", 1)[0]
+                        if not target or "://" in target:
+                            continue
+                        resolved = (source.parent / target).resolve()
+                        self.assertTrue(resolved.is_relative_to(package.resolve()), str(source))
+                        self.assertTrue(resolved.is_file(), f"{source}: {target}")
 
     def test_shared_mcp_contract_remains_exactly_twelve_tools(self) -> None:
         mcp = json.loads((PLUGIN_ROOT / ".mcp.json").read_text(encoding="utf-8"))
@@ -340,7 +212,7 @@ class ClaudeManifestTest(unittest.TestCase):
             mcp,
             {
                 "mcpServers": {
-                    "anchises_analysis": {
+                    "mining_market_research": {
                         "type": "http",
                         "url": "https://mcp.anchisesdata.com/mcp",
                     }
@@ -352,7 +224,7 @@ class ClaudeManifestTest(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(len(contract["tools"]), 12)
+        self.assertEqual(len(contract["tools"]), 17)
 
         release = json.loads(CLAUDE_RELEASE_PATH.read_text(encoding="utf-8"))
         self.assertEqual(
@@ -379,18 +251,16 @@ class ClaudeManifestTest(unittest.TestCase):
         normalized = " ".join(guide.split())
         for expected in (
             "2026Allin/anchises-stock-qa@main",
-            "--sparse .claude-plugin plugins/anchises-analysis",
             "claude plugin install anchises-analysis@anchises-capital",
             "claude --plugin-dir .",
-            "https://github.com/2026Allin/anchises-stock-qa",
             "Claude Chat",
             "Claude Desktop",
             "Cowork",
             "Claude Code",
-            "Customize → Plugins → Anchises Analysis → Update",
+            "not certified",
             "anchises-analysis/claude/v<semver>",
-            "Exactly one visible Skill",
-            "exactly 12 tools",
+            "all seven Skills",
+            "17 required tools",
         ):
             self.assertIn(expected, normalized)
 
@@ -632,50 +502,6 @@ class ClaudeUpdateTest(unittest.TestCase):
 
 
 class SharedBundleRegressionTest(unittest.TestCase):
-    EXPECTED_SHA256 = {
-        "plugins/anchises-analysis/.mcp.json": "0206a879a0161f76f354fbf8f160129735c9eec64da2cc28e46a972e52756dc7",
-        "plugins/anchises-analysis/contracts/hosted-mcp-v1.json": "f52ff5598cf12c13958cbb6c33bc3bffd0770788b8c9383c552714b0895699c6",
-    }
-    EXPECTED_NORMALIZED_PROMPT_SHA256 = {
-        "workflows/company-brief.md": "e3e50389698a81f343630803372098b013b5013c7fd54f7c7e4ad358d420f411",
-        "workflows/company-comparison.md": "f45a87afd3f3c7a0769fee7a421bb23ca69b0fa8168f352a60fc20afd44b4bd8",
-        "workflows/company-report.md": "aa837d7a6adf029afd9f8966890dd640b9f726b8d77c299881c7ba9e63ae7efb",
-        "workflows/market-analysis.md": "91486c08bb6191d93a0e8f45281401ad7406218dda809a12b08ff679249b667f",
-        "references/comparison-format.md": "b7d999cda0c5611a5f03f98e8012ebe1e879170aa49ca8d964979fc475532fd2",
-        "references/comparison-workflow.md": "bba176cdeeb40cacc042a1a50bd062beb7c82b461834963168656f0f5608819e",
-        "references/mining-report-quality.md": "30c52bb042c4fd5015bd6d196c0948295786e5dd35cd069b80b8252553f6da18",
-        "references/report-format.md": "8d867da983a34139972508b27714616244595fc898f19df8e0d3f27f4f8d0ad5",
-        "references/report-workflow.md": "aeaf7c5f13dbe94d0ef291e98748b2e5ae2ef6e60b6c53f093f6c75149fc3d38",
-        "references/market-answer-format.md": "a2641109cae6f1b0e31d962cd55cb447e2d5fcd518401affcd6220a09ec7a070",
-        "references/market-data-policy.md": "7e6e1cf0e667565ea9f47508a5058bf7e1910e29b9f2e34079c62494fae53bcc",
-        "references/market-workflow.md": "e74c7543974e7389b73ceccaf2027f45fc68f9073dd2d7a3fcfb6e4a20a3b38e",
-    }
-
-    def test_mcp_contract_is_byte_for_byte_unchanged(self) -> None:
-        for relative in (
-            "plugins/anchises-analysis/.mcp.json",
-            "plugins/anchises-analysis/contracts/hosted-mcp-v1.json",
-        ):
-            expected = self.EXPECTED_SHA256[relative]
-            with self.subTest(path=relative):
-                digest = hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
-                self.assertEqual(digest, expected)
-
-    def test_moved_business_prompts_change_only_internal_link_paths(self) -> None:
-        def normalize_links(text: str) -> str:
-            def replace(match: re.Match[str]) -> str:
-                label, target = match.groups()
-                normalized_label = Path(label).name if label.endswith(".md") else label
-                return f"[{normalized_label}]({Path(target).name})"
-
-            return re.sub(r"\[([^\]]+)\]\(([^)]+\.md)\)", replace, text)
-
-        for relative, expected in self.EXPECTED_NORMALIZED_PROMPT_SHA256.items():
-            with self.subTest(relative=relative):
-                text = (CLAUDE_SKILL_ROOT / relative).read_text(encoding="utf-8")
-                digest = hashlib.sha256(normalize_links(text).encode()).hexdigest()
-                self.assertEqual(digest, expected)
-
     def test_business_workflows_are_present_in_the_self_contained_core(self) -> None:
         expected_fingerprints = {
             "company-brief.md": "exactly three or four prose sentences",

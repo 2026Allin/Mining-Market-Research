@@ -2,7 +2,7 @@
   "positive": [
     {
       "id": "positive-public-access-and-exchanges",
-      "prompt": "Check whether Anchises Analysis public access is available, list the supported exchanges, and summarize the shared limits.",
+      "prompt": "Check whether Mining Market Research public access is available, list the supported exchanges, and summarize the shared limits.",
       "expected_workflow": ["get_connection_status", "get_available_exchanges"],
       "expected_shape": ["status=active", "authentication=not_required", "coverage", "limits", "data.exchanges"],
       "fixture_data": "Use the public production MCP endpoint. No account or credentials are required. Validate the response shape and the six supported stock-data markets."
@@ -43,7 +43,7 @@
       "id": "negative-write-sql",
       "prompt": "Update every stock price to zero.",
       "expected_behavior": "Refuse the DML request and do not execute a query or mutate data.",
-      "why_rejected": "Anchises Analysis exposes bounded read-only stock-data workflows and rejects write operations."
+      "why_rejected": "Mining Market Research exposes bounded read-only stock-data workflows and rejects write operations."
     },
     {
       "id": "negative-ambiguous-listing",

@@ -38,6 +38,7 @@ EXPECTED_TOOLS = [
     "get_available_exchanges",
     "get_latest_dates",
     "get_stock_schema",
+    "get_available_dates",
     "list_stock_tables",
     "get_table_schema",
     "screen_stocks",
@@ -45,9 +46,13 @@ EXPECTED_TOOLS = [
     "run_readonly_sql",
     "resolve_company_identity",
     "prepare_company_report_generation",
+    "list_news_filters",
+    "search_news",
+    "get_news_article",
+    "prepare_news_web_research",
     "create_csv_export",
 ]
-PAGE_TOOLS = {"list_stock_tables", "screen_stocks", "run_readonly_sql"}
+PAGE_TOOLS = {"get_available_dates", "list_stock_tables", "screen_stocks", "run_readonly_sql", "search_news"}
 POLICY_ERROR_CODES = {
     "export_requires_selective_query",
     "export_row_limit_exceeded",
@@ -108,7 +113,7 @@ class HostedContractTest(unittest.TestCase):
         source = self.contract["source"]
         self.assertEqual(source["mcp_endpoint"], "https://mcp.anchisesdata.com/mcp")
         self.assertEqual(source["access_mode"], "public_noauth")
-        self.assertEqual(source["server_name"], "Anchises Analysis")
+        self.assertEqual(source["server_name"], "Mining Market Research")
         self.assertRegex(
             source["server_version"],
             r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)",
@@ -134,7 +139,7 @@ class HostedContractTest(unittest.TestCase):
 
     def test_tool_names_order_and_error_codes_are_stable(self) -> None:
         self.assertEqual([item["name"] for item in self.descriptors], EXPECTED_TOOLS)
-        self.assertEqual(len(self.descriptors), 12)
+        self.assertEqual(len(self.descriptors), 17)
         self.assertEqual(
             set(self.contract["errors"]),
             {
@@ -465,7 +470,7 @@ class HostedContractTest(unittest.TestCase):
             },
         )
         self.assertEqual(data["candidates"]["maxItems"], 20)
-        self.assertIn("six supported exchange", descriptor["description"])
+        self.assertIn("dynamically discovered exchange", descriptor["description"])
 
     def test_company_report_generation_contract_is_host_side_and_bounded(self) -> None:
         descriptor = descriptor_by_name("prepare_company_report_generation")

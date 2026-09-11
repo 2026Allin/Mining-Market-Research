@@ -1,42 +1,37 @@
-# Anchises Analysis Marketplace
+# Mining Market Research Marketplace
 
-<img src="plugins/anchises-analysis/assets/logo.png" alt="Anchises Analysis logo" width="96">
+<img src="plugins/anchises-analysis/assets/logo.png" alt="Mining Market Research logo" width="96">
 
 This repository contains the Codex `Anchises-Analysis` Marketplace, the Claude
 `anchises-capital` Marketplace, and one shared `anchises-analysis` plugin
-package published by Anchises Capital. Codex exposes five Skill entries;
-Claude exposes the same self-contained `Anchises Analysis` coordinator as one
-visible Skill and loads its four internal workflow documents. Both connect
-directly to the public Hosted MCP at
-`https://mcp.anchisesdata.com/mcp`. It does not depend on a workspace-specific
-Developer Mode App ID.
+package published by Anchises Capital. Both native hosts expose the same seven
+Skills and connect directly to `https://mcp.anchisesdata.com/mcp`.
+No generated platform copies or workspace-specific App ID are required.
 
-Current Codex target: `0.6.0-dev.9`. Current Claude target:
-`0.6.0-dev.10`. The submitted public-review release remains `0.4.0-beta.2`.
+Development preview: `0.6.0-dev.11`. The submitted public-review
+release remains `0.4.0-beta.2`; this preview is not a certified stable release.
+See [preview release notes](docs/mining-market-research-0.6.0-dev.11-release-notes.md).
 
-## QA development changes (unreleased)
+## Development preview changes
 
-- Claude Chat, Desktop, Cowork, and Claude Code now expose exactly one visible
-  `Anchises Analysis` Skill. Its self-contained root contains the coordinator,
-  four unchanged business workflow bodies, shared references, update scripts,
-  and the unchanged 12-tool MCP contract. Codex keeps four thin specialist
-  entries pointing to those same workflow bodies.
-- The existing Anchises Analysis entry now accepts explicit health, status,
-  connection, and update-check requests as `diagnostics`. It independently
-  reports service access and the active host's plugin Tag status, uses the
-  existing one-hour/ten-minute cache policy, and supports one-shot force
-  refresh without installing anything.
-- Claude update discovery uses `anchises-analysis/claude/v*`, while Codex keeps
-  `anchises-analysis/codex/v*`. Both retain the one-hour success cache,
-  ten-minute failure cache, silent failure behavior, exact authorization, and
-  final-footer reminder policy.
-- Git Marketplace metadata with an omitted or `null` `refName` is no longer
-  misclassified as a local or unsupported source. It is accepted only when the
-  already captured remote refs prove that `HEAD`, `refs/heads/main`, and the
-  selected Codex release Tag resolve to the same commit.
-- Explicit non-`main` refs, a missing remote `HEAD`, wrong repositories, local
-  Marketplaces, and commit mismatches still fail closed without an additional
-  command, retry, or configuration change.
+- Both marketplaces select `plugins/anchises-analysis`, a self-contained
+  package with Codex and Claude Code native manifests.
+- Seven shared entries: coordinator, Company Brief, Company Report,
+  Company Comparison, Market Analysis, News Analysis and Upgrade.
+- The live MCP snapshot contains 17 tools. News searches the corpus before web
+  supplementation; date discovery uses `get_available_dates`, not physical tables.
+- Platform-only differences live inside the core Skill's `references/hosts`. Agent-driven update checks
+  run on first use and the first use six hours after the last successful check.
+  No hooks; no update means no reminder. Explicit Upgrade verifies installation
+  and requires a new session. Refusal or silence never authorizes installation.
+- Automatic checks are best-effort: real Chat sessions sometimes skip them.
+  Explicit checking is the supported fallback; Chat updates require manual upload.
+- Contract compatibility, package-contained links, shared versions and normalized
+  tool-trace invariants are tested. Real dual-host acceptance remains required.
+- See [architecture and acceptance](docs/native-plugin-architecture.md) and
+  [Claude Code migration](docs/anchises-analysis-claude-install.md).
+
+Older release notes below describe historical behavior, not the current contract.
 
 ## What changed in 0.6.0-dev.9
 
@@ -76,11 +71,11 @@ Current Codex target: `0.6.0-dev.9`. Current Claude target:
 
 ## What changed in 0.6.0-dev.6
 
-- Every selected Anchises Skill performs one read-only Codex release check
+- Every selected Mining Market Research Skill performs one read-only Codex release check
   against `anchises-analysis/codex/v*` Git tags. This is independent of MCP
   service versioning; current, unknown, and failed checks stay silent.
 - An available update adds one operational footer after the normal business
-  answer. Installation requires an explicit Anchises Analysis update sentence;
+  answer. Installation requires an explicit Mining Market Research update sentence;
   a bare “yes” or “install” never authorizes commands.
 - A Codex tag is valid only when it points to the current remote `main` head.
   The fixed updater supports only the Git Marketplace on `main`, performs one
@@ -105,7 +100,7 @@ Current Codex target: `0.6.0-dev.9`. Current Claude target:
 - Local and cross-workspace Repo Marketplace installations load the same five
   Skills and MCP endpoint from one plugin package.
 - A teammate can install from the public GitHub marketplace without creating
-  an Anchises Analysis App ID or using workspace sharing.
+  an Mining Market Research App ID or using workspace sharing.
 - The former Developer Mode App may remain available as a short-term rollback
   resource, but it is not part of or required by this package.
 
@@ -139,7 +134,7 @@ Current Codex target: `0.6.0-dev.9`. Current Claude target:
   tables, rankings, and comparison matrices keep their own display limits.
 - Successful substantive analysis uses one shared response-finalization
   contract for continuation and semantic questions.
-- Each Skill uses the bundled Anchises Analysis MCP while preserving the same
+- Each Skill uses the bundled Mining Market Research MCP while preserving the same
   public-service access, privacy, and response contracts.
 
 ## What changed in 0.4
@@ -164,9 +159,9 @@ Current Codex target: `0.6.0-dev.9`. Current Claude target:
 ```text
 .agents/plugins/marketplace.json
 .claude-plugin/marketplace.json
-.claude-plugin/plugin.json
 plugins/anchises-analysis/
   .codex-plugin/plugin.json
+  .claude-plugin/plugin.json
   .mcp.json
   assets/
   contracts/
@@ -179,6 +174,8 @@ plugins/anchises-analysis/
     company-report/
     company-comparison/
     market-analysis/
+    news-analysis/
+  shared/hosts/
 tests/
 docs/
 ```
@@ -193,11 +190,11 @@ or the Data API.
 .venv/bin/python -m unittest discover -s tests -v
 
 .venv/bin/python \
-  plugins/anchises-analysis/skills/anchises-analysis/scripts/validate_plugin_policy.py
+  plugins/anchises-analysis/skills/mining-market-research/scripts/validate_plugin_policy.py
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/anchises-analysis
+  plugins/anchises-analysis/skills/mining-market-research
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
@@ -308,11 +305,11 @@ App ID. A managed workspace may still require its administrator to allowlist
 the Git marketplace source and the bundled MCP URL. Start a new Codex task
 after installation.
 
-A Git Marketplace installation checks only Codex tags during Anchises
-requests. Cache misses use one fixed-repository, read-only Git command with a
+A Git Marketplace installation checks only Codex tags during Mining Market
+Research requests. Cache misses use one fixed-repository, read-only Git command with a
 narrow reusable approval prefix; Python only validates the captured refs.
-It installs only after the user explicitly authorizes the named Anchises
-Analysis update. Local Marketplaces remain manual. MCP upgrades do not create
+It installs only after the user explicitly authorizes the named Mining Market
+Research update. Local Marketplaces remain manual. MCP upgrades do not create
 plugin update notices unless a newer Codex plugin tag is also published.
 
 See the complete
@@ -333,14 +330,14 @@ claude plugin install anchises-analysis@anchises-capital
 In Claude Chat, Desktop, or Cowork, open **Customize → Plugins**, choose
 **Personal plugins → + → Add marketplace → Add from a repository**, and enter
 `https://github.com/2026Allin/anchises-stock-qa`. The same plugin package loads
-exactly one visible self-contained `Anchises Analysis` Skill, its unchanged
+exactly one visible self-contained `Mining Market Research` Skill, its unchanged
 business workflows, and the shared Hosted MCP. Start a new Claude conversation
 after installation or update.
 
 Claude release checks consider only `anchises-analysis/claude/v*`. Claude Code
 can run the guarded fixed CLI update after exact authorization; Chat, Desktop,
 and Cowork instead hand off to
-`Customize → Plugins → Anchises Analysis → Update` and never claim the UI
+`Customize → Plugins → Mining Market Research → Update` and never claim the UI
 operation completed.
 
 See the complete

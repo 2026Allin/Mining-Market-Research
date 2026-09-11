@@ -1,0 +1,8 @@
+interface:
+  display_name: "Mining Market Research"
+  short_description: "Company research, market analysis, health, and update status."
+  brand_color: "#334155"
+  default_prompt: "Use $mining-market-research to check Mining Market Research status or route my request to a Brief, full report, comparison, or market analysis."
+
+policy:
+  allow_implicit_invocation: true

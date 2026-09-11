@@ -13,7 +13,7 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_ROOT = ROOT / "plugins" / "anchises-analysis" / "skills" / "anchises-analysis"
+SKILL_ROOT = ROOT / "plugins" / "anchises-analysis" / "skills" / "mining-market-research"
 POLICY_PATH = SKILL_ROOT / "references" / "plugin-policy.json"
 VALIDATOR_PATH = SKILL_ROOT / "scripts" / "validate_plugin_policy.py"
 

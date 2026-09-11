@@ -276,7 +276,7 @@ class MockServiceHandler(BaseHTTPRequestHandler):
     def _auth_challenge(self, request_id: Any) -> None:
         challenge = (
             f'Bearer resource_metadata="{self.base_url}/mcp/.well-known/oauth-protected-resource", '
-            'error="invalid_token", error_description="Sign in to Anchises Analysis"'
+            'error="invalid_token", error_description="Sign in to Mining Market Research"'
         )
         self._json(
             401,
@@ -628,6 +628,7 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                         "csv": {"max_bytes": 50000000},
                     },
                     "data_policy": self._data_policy(),
+                    "news_policy": {"name": "test", "filters": [], "epoch": "test-epoch"},
                 }
                 return result
             status = "active" if token == ACTIVE_TOKEN else "pending"
@@ -654,6 +655,7 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                     else None
                 ),
                 "data_policy": self._data_policy() if status == "active" else None,
+                "news_policy": None,
             }
             return result
         if name == "get_available_exchanges":

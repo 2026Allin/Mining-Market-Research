@@ -1,4 +1,4 @@
-# Anchises Analysis Marketplace Release Plan
+# Mining Market Research Marketplace Release Plan
 
 ## Release target
 
@@ -7,7 +7,7 @@
   Comparison, and Market Analysis
 - Codex visible Skills: all five canonical workflows
 - Claude visible Skills: one self-contained `anchises-analysis` coordinator
-- Display name: Anchises Analysis
+- Display name: Mining Market Research
 - Publisher: Anchises Capital
 - Codex version: `0.6.0-dev.9`
 - Claude version: `0.6.0-dev.10`
@@ -35,7 +35,7 @@ App ID.
    source is the repository root, and both manifests resolve to the same
    `.mcp.json`. The package contains no `.app.json` or `plugin_asdk_app`
    identifier.
-2. `agents/openai.yaml` explicitly invokes `$anchises-analysis`.
+2. `agents/openai.yaml` explicitly invokes `$mining-market-research`.
 3. The checked-in live snapshot contains exactly 12 tools, including
    `resolve_company_identity`; both row tools accept opaque cursor
    continuation and publish `string | null` `next_cursor` values.
@@ -81,7 +81,7 @@ App ID.
 
 ## Cross-workspace Codex gates
 
-1. From a Codex account in a different OpenAI workspace with no Anchises
+1. From a Codex account in a different OpenAI workspace with no Mining Market Research
    Developer Mode App, add the Git marketplace at `main` and install
    `anchises-analysis@Anchises-Analysis`.
 2. Confirm the plugin installs without an App ID, authentication credential,
@@ -107,7 +107,7 @@ App ID.
 2. Confirm Claude Code exposes exactly one `anchises-analysis` Skill, loads one
    `anchises_analysis` MCP server, and routes representative Brief, Report,
    Comparison, and Market requests into the unchanged canonical workflows.
-   Confirm `/anchises-analysis 检查状态` loads every referenced file from the
+   Confirm `/mining-market-research 检查状态` loads every referenced file from the
    mounted Skill root and returns the Claude version rather than a file error.
 3. After merging the tested commit to `main`, repeat installation from
    `2026Allin/anchises-stock-qa@main` and validate Claude Chat, Claude Desktop,
@@ -120,7 +120,7 @@ App ID.
    decline behavior.
 6. In Claude Code on `main`, validate the fixed five-command CLI update and
    fail-closed source checks. In Chat, Desktop, and Cowork, confirm the plugin
-   gives only the `Customize → Plugins → Anchises Analysis → Update` handoff
+   gives only the `Customize → Plugins → Mining Market Research → Update` handoff
    and does not claim installation completed.
 7. Start a new Claude conversation after every installation or update and
    verify the single visible Skill and exactly 12 MCP tools again.

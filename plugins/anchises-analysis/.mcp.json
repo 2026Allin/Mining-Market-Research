@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "anchises_analysis": {
+    "mining_market_research": {
       "type": "http",
       "url": "https://mcp.anchisesdata.com/mcp"
     }

@@ -16,7 +16,7 @@ class MarketplaceManifestTest(unittest.TestCase):
     def test_marketplace_points_to_plugin_package(self) -> None:
         data = json.loads(MARKETPLACE.read_text(encoding="utf-8"))
         self.assertEqual(data["name"], "Anchises-Analysis")
-        self.assertEqual(data["interface"]["displayName"], "Anchises Analysis")
+        self.assertEqual(data["interface"]["displayName"], "Mining Market Research")
         plugins = {plugin["name"]: plugin for plugin in data["plugins"]}
 
         plugin = plugins["anchises-analysis"]
@@ -29,7 +29,7 @@ class MarketplaceManifestTest(unittest.TestCase):
         self.assertTrue((plugin_root / ".codex-plugin" / "plugin.json").exists())
         self.assertFalse((plugin_root / ".app.json").exists())
         self.assertTrue((plugin_root / ".mcp.json").exists())
-        self.assertTrue((plugin_root / "skills" / "anchises-analysis").is_dir())
+        self.assertTrue((plugin_root / "skills" / "mining-market-research").is_dir())
         self.assertTrue((plugin_root / "skills" / "company-brief").is_dir())
         self.assertTrue((plugin_root / "skills" / "company-report").is_dir())
         self.assertTrue((plugin_root / "skills" / "company-comparison").is_dir())
@@ -54,17 +54,17 @@ class MarketplaceManifestTest(unittest.TestCase):
             mcp_manifest,
             {
                 "mcpServers": {
-                    "anchises_analysis": {
+                    "mining_market_research": {
                         "type": "http",
                         "url": "https://mcp.anchisesdata.com/mcp",
                     }
                 }
             },
         )
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.9")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.11")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.9(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.11(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(contract["contract_version"], "1.9.0-draft")
@@ -84,8 +84,8 @@ class MarketplaceManifestTest(unittest.TestCase):
             "--sparse plugins/anchises-analysis",
             "codex plugin add anchises-analysis@Anchises-Analysis",
             "https://mcp.anchisesdata.com/mcp",
-            "all five Skills",
-            "exactly 12 tools",
+            "all seven Skills",
+            "17 required tools",
         ):
             self.assertIn(expected, normalized)
         self.assertNotIn("plugin_asdk_app", guide)

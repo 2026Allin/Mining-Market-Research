@@ -16,14 +16,14 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
-SCRIPT_ROOT = PLUGIN_ROOT / "skills" / "anchises-analysis" / "scripts"
+SCRIPT_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research" / "scripts"
 CHECKER_PATH = SCRIPT_ROOT / "check_plugin_update.py"
 UPDATER_PATH = SCRIPT_ROOT / "update_installed_plugin.py"
 SYNC_PATH = PLUGIN_ROOT / "scripts" / "sync_plugin_release.py"
 RELEASE_PATH = (
     PLUGIN_ROOT
     / "skills"
-    / "anchises-analysis"
+    / "mining-market-research"
     / "references"
     / "plugin-release.json"
 )
@@ -51,10 +51,10 @@ MARKETPLACE = "Anchises-Analysis"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GIT_REF = "main"
 TAG_PREFIX = "anchises-analysis/codex/v"
-CURRENT_VERSION = "0.6.0-dev.9"
-CURRENT_RELEASE = "0.6.0-dev.9+codex.20260806170519"
-TARGET_VERSION = "0.6.0-dev.10"
-TARGET_RELEASE = "0.6.0-dev.10+codex.20260808120000"
+CURRENT_VERSION = "0.6.0-dev.11"
+CURRENT_RELEASE = "0.6.0-dev.11+codex.20260806170519"
+TARGET_VERSION = "0.6.0-dev.12"
+TARGET_RELEASE = "0.6.0-dev.12+codex.20260808120000"
 MAIN_COMMIT = "1" * 40
 OTHER_COMMIT = "2" * 40
 TAG_OBJECT = "3" * 40
@@ -178,7 +178,7 @@ class PluginTagCheckTest(unittest.TestCase):
         self.assertNotIn("*", " ".join(GIT_CHECK))
         self.assertNotIn("subprocess", CHECKER_PATH.read_text(encoding="utf-8"))
         self.assertNotIn("ls-remote", UPDATER_PATH.read_text(encoding="utf-8"))
-        self.assertIn("只读检查 Anchises Analysis", checker.RELEASE_CHECK_JUSTIFICATION)
+        self.assertIn("只读检查 Mining Market Research", checker.RELEASE_CHECK_JUSTIFICATION)
 
     def test_no_newer_codex_tag_is_current(self) -> None:
         for output in (_refs(), _refs(CURRENT_VERSION, "0.5.9")):
@@ -207,13 +207,13 @@ class PluginTagCheckTest(unittest.TestCase):
         )
         result = self._check(
             _refs(
-                "0.6.0-dev.10",
+                "0.6.0-dev.12",
                 head_commit=OTHER_COMMIT,
                 extra=(claude, *unrelated),
             )
         )
-        self.assertEqual(result["target_version"], "0.6.0-dev.10")
-        self.assertGreater(checker.compare_versions("0.6.0-dev.10", "0.6.0-dev.9"), 0)
+        self.assertEqual(result["target_version"], "0.6.0-dev.12")
+        self.assertGreater(checker.compare_versions("0.6.0-dev.12", "0.6.0-dev.11"), 0)
         self.assertGreater(checker.compare_versions("0.6.0", "0.6.0-dev.99"), 0)
 
     def test_empty_malformed_and_oversized_ref_inputs_are_unknown(self) -> None:
@@ -312,7 +312,7 @@ class PluginTagCheckTest(unittest.TestCase):
                         "prefix_rule(",
                         f"    pattern = {list(GIT_CHECK)!r},",
                         '    decision = "allow",',
-                        '    justification = "Allow fixed Anchises release checks",',
+                        '    justification = "Allow fixed Mining Market Research release checks",',
                         f"    match = [{' '.join(GIT_CHECK)!r}],",
                         "    not_match = [",
                         f"        {'git ls-remote -- https://github.com/example/wrong.git'!r},",

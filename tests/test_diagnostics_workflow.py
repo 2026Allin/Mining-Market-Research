@@ -13,7 +13,7 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
-SKILL_ROOT = PLUGIN_ROOT / "skills" / "anchises-analysis"
+SKILL_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research"
 REFERENCE_ROOT = SKILL_ROOT / "references"
 DIAGNOSTICS = REFERENCE_ROOT / "diagnostics.md"
 CHECKER_PATH = SKILL_ROOT / "scripts" / "check_plugin_update.py"
@@ -54,7 +54,7 @@ class DiagnosticsRoutingTest(unittest.TestCase):
         ):
             case = cases[case_id]
             self.assertEqual(case["expected_primary_task"], "diagnostics")
-            self.assertEqual(case["expected_skill"], "anchises-analysis")
+            self.assertEqual(case["expected_skill"], "mining-market-research")
             self.assertEqual(case["expected_tools"], ["get_connection_status"])
             self.assertLessEqual(
                 case["expected_release_check"]["max_git_queries"],
@@ -90,7 +90,7 @@ class DiagnosticsRoutingTest(unittest.TestCase):
         )
         for expected in (
             "`primary_task=diagnostics`",
-            "`anchises_analysis:get_connection_status` exactly once with `{}`",
+            "`mining_market_research:get_connection_status` exactly once with `{}`",
             "Do not call HTTP `/health`",
             "Run the service check and selected-platform plugin check independently",
             "skip the cache-only probe",
@@ -104,7 +104,7 @@ class DiagnosticsRoutingTest(unittest.TestCase):
         self.assertIn("bypasses `query-interpretation.md`", coordinator)
         self.assertIn("`plugin_update`, not `diagnostics`", coordinator)
         self.assertIn("must not call MCP", coordinator)
-        self.assertIn("An explicit “check updates only; do not install”", shared)
+        self.assertIn("An explicit plugin-only “check updates only; do not install”", shared)
         self.assertIn("must not call `get_connection_status`", shared)
 
     def test_coordinator_contains_the_claude_safe_diagnostic_completion_gate(self) -> None:
@@ -112,7 +112,7 @@ class DiagnosticsRoutingTest(unittest.TestCase):
             (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8").split()
         )
         for expected in (
-            "`anchises_analysis:get_connection_status` exactly once with `{}`",
+            "`mining_market_research:get_connection_status` exactly once with `{}`",
             "A successful service call never permits skipping the plugin check",
             "Populate both `diagnostic_service_check` and `diagnostic_plugin_check`",
             "- 插件：<Codex 或 Claude>，当前版本 <x>",
@@ -131,8 +131,8 @@ class DiagnosticsRoutingTest(unittest.TestCase):
         )
         self.assertLessEqual(len(description), 1024)
         for expected in (
-            "For any Anchises status request, run unified diagnostics",
-            "anchises_analysis:get_connection_status once",
+            "For any Mining Market Research status request, run unified diagnostics",
+            "mining_market_research:get_connection_status once",
             "active host's bundled release metadata",
             "never stop after service status",
             "platform/current version",
@@ -160,7 +160,7 @@ class DiagnosticsResultContractTest(unittest.TestCase):
             expected = case["expected"]
             receipt = "\n".join(
                 (
-                    "Anchises Analysis 状态",
+                    "Mining Market Research 状态",
                     f"- 服务：{expected['service']}",
                     f"- 访问：{expected['access']}",
                     f"- 更新：{expected['update']}",
@@ -183,7 +183,7 @@ class DiagnosticsResultContractTest(unittest.TestCase):
     def test_direct_remote_ingest_bypasses_a_cached_value_and_writes_new_cache(self) -> None:
         metadata = REFERENCE_ROOT / "plugin-release.json"
         main_commit = "a" * 40
-        target = "0.6.0-dev.10"
+        target = "0.6.0-dev.12"
         refs_with_update = "\n".join(
             (
                 f"{main_commit}\tHEAD",
@@ -242,7 +242,7 @@ class DiagnosticsResultContractTest(unittest.TestCase):
         self.assertEqual(claude["repository"], REPOSITORY)
         self.assertEqual(codex["tag_prefix"], "anchises-analysis/codex/v")
         self.assertEqual(claude["tag_prefix"], "anchises-analysis/claude/v")
-        self.assertNotEqual(codex["version"], claude["version"])
+        self.assertEqual(codex["version"], claude["version"])
 
 
 if __name__ == "__main__":

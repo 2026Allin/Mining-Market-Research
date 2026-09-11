@@ -1,11 +1,11 @@
-# Anchises Analysis Reviewer Test Cases
+# Mining Market Research Reviewer Test Cases
 
 Run exactly five positive and three negative reviewer cases in a fresh task
 after installing `anchises-analysis@Anchises-Analysis`.
 
 ## Positive 1 — Public access and exchanges
 
-> Check whether Anchises Analysis public access is available, list the supported exchanges, and summarize the shared limits.
+> Check whether Mining Market Research public access is available, list the supported exchanges, and summarize the shared limits.
 
 Expected: `get_connection_status`, `get_available_exchanges`, active public
 access without credentials, and the supported structured-data markets.

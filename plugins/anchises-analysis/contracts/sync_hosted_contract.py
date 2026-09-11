@@ -31,6 +31,7 @@ from hosted_contract import (
     mode_profile,
     validate_contract,
 )
+from capability_contract import compatibility_changes, required_tools
 
 
 DEFAULT_ENDPOINT = "https://mcp.anchisesdata.com/mcp"
@@ -39,34 +40,6 @@ MCP_PROTOCOL_VERSION = "2025-06-18"
 CONTRACT_SYNC_CLIENT_VERSION = "1.0.0"
 REQUEST_TIMEOUT_SECONDS = 30
 MAX_RESPONSE_BYTES = 5 * 1024 * 1024
-EXPECTED_TOOLS = [
-    "get_connection_status",
-    "get_available_exchanges",
-    "get_latest_dates",
-    "get_stock_schema",
-    "list_stock_tables",
-    "get_table_schema",
-    "screen_stocks",
-    "validate_readonly_sql",
-    "run_readonly_sql",
-    "resolve_company_identity",
-    "prepare_company_report_generation",
-    "create_csv_export",
-]
-EXPECTED_OAUTH_TOOL_SCOPES = {
-    "get_connection_status": [],
-    "get_available_exchanges": ["stock.read"],
-    "get_latest_dates": ["stock.read"],
-    "get_stock_schema": ["schema.read"],
-    "list_stock_tables": ["schema.read"],
-    "get_table_schema": ["schema.read"],
-    "screen_stocks": ["stock.read"],
-    "validate_readonly_sql": ["stock.read"],
-    "run_readonly_sql": ["stock.read"],
-    "resolve_company_identity": ["stock.read"],
-    "prepare_company_report_generation": ["stock.read"],
-    "create_csv_export": ["export.create"],
-}
 EXPECTED_ERRORS = {
     "invalid_scope": {"retryable": False},
     "access_pending": {"retryable": False},
@@ -338,8 +311,10 @@ def fetch_contract(
     if not isinstance(tools, list):
         raise RuntimeError("MCP tools/list result must contain a tools list")
     names = [tool["name"] for tool in tools]
-    if names != EXPECTED_TOOLS:
-        raise RuntimeError(f"unexpected Hosted MCP tools: {names}")
+    required = required_tools()
+    missing = required - set(names)
+    if missing:
+        raise RuntimeError(f"missing required Hosted MCP tools: {sorted(missing)}")
     actual_profile = _security_profile(tools)
     if expected_profile == PROFILE_UNAVAILABLE:
         raise RuntimeError(
@@ -356,8 +331,20 @@ def fetch_contract(
 
     contract = base
     contract["contract_version"] = CONTRACT_PROFILE_VERSION
-    contract["oauth"]["tool_scopes"] = copy.deepcopy(
-        EXPECTED_OAUTH_TOOL_SCOPES
+    # Preserve published descriptors verbatim. Anonymous discovery cannot establish
+    # OAuth scopes for new tools; do not invent permissions for them.
+    scopes = {}
+    for tool in tools:
+        schemes = tool["securitySchemes"]
+        scopes[tool["name"]] = (
+            schemes[0]["scopes"] if actual_profile == PROFILE_AUTHENTICATED
+            else copy.deepcopy(base["oauth"]["tool_scopes"].get(tool["name"], []))
+        )
+    contract["oauth"]["tool_scopes"] = scopes
+    contract["oauth"]["scopes_supported"] = sorted(
+        set(contract["oauth"]["scopes_supported"]).union(
+            *(set(value) for value in scopes.values())
+        )
     )
     contract["errors"] = copy.deepcopy(EXPECTED_ERRORS)
     contract["runtime"]["snapshot_mode"] = mode
@@ -469,12 +456,11 @@ def main() -> None:
     except (ContractError, RuntimeError) as exc:
         raise SystemExit(str(exc)) from exc
     if args.check:
-        if not contracts_match(base, live):
-            raise SystemExit(
-                "Hosted MCP contract changed: "
-                f"checked-in={base['source']['descriptor_sha256']} "
-                f"live={live['source']['descriptor_sha256']}"
-            )
+        changes = compatibility_changes(base, live)
+        for notice in changes["notices"]:
+            print(f"Review: {notice}")
+        if changes["blocking"]:
+            raise SystemExit("Hosted MCP incompatible changes: " + "; ".join(changes["blocking"]))
         print(
             f"Hosted MCP contract matches ({expected_mode}): "
             f"{live['source']['descriptor_sha256']}"

@@ -1,117 +1,43 @@
-# Anchises Analysis
+# Mining Market Research
 
-Anchises Analysis keeps one canonical self-contained workflow core for Codex
-and Claude. Codex exposes the coordinator plus four thin specialist Skill
-entries; Claude exposes only the self-contained `Anchises Analysis`
-coordinator and loads the selected internal workflow document. Both provide concise company briefs, deep live reports,
-cross-company comparison, and structured stock-market analysis.
+One self-contained MCP + Skills plugin for Codex and Claude Code. Both native
+manifests load the same seven Skill entries and `.mcp.json`; no generated copies
+or conversion layer. The public endpoint is `https://mcp.anchisesdata.com/mcp`.
 
-## Release identity
+## Release identity and architecture
 
-- Plugin slug: `anchises-analysis`
-- Canonical Skill names: `anchises-analysis`, `company-brief`, `company-report`,
-  `company-comparison`, `market-analysis`
-- Codex explicit invocations: `$anchises-analysis`, `$company-brief`,
-  `$company-report`, `$company-comparison`, `$market-analysis`
-- Claude visible Skill: `anchises-analysis`
-- Display name: `Anchises Analysis`
-- Publisher: `Anchises Capital`
-- Codex semantic version: `0.6.0-dev.9`
-- Claude semantic version: `0.6.0-dev.10`
-- Codex Marketplace: `Anchises-Analysis`
-- Claude Marketplace: `anchises-capital`
-- Hosted MCP: `https://mcp.anchisesdata.com/mcp`
-- Hosted MCP version: discovered dynamically from the MCP handshake
-- Data API version: `0.3.0`
-- Internal capability contract: `1.9.0-draft`
-- Bundled market policy: maintainer-owned `enabled` or `disabled`
-- Service capabilities: live query and export policy from MCP
-- Prompt pack: `5.1`
+- Product version: `0.6.0-dev.11`; platform cache identifiers remain separate.
+- Display name: Mining Market Research. Technical slug: `anchises-analysis`.
+- Codex marketplace: `Anchises-Analysis`; Claude marketplace: `anchises-capital`.
+- Entries: mining-market-research, company-brief, company-report, company-comparison,
+  market-analysis, news-analysis, upgrade.
+- Canonical workflows and policies: `skills/mining-market-research/workflows` and
+  `references`; host-only instructions: `skills/mining-market-research/references/hosts`.
+- Raw MCP snapshot: `contracts/hosted-mcp-v1.json`; tool ownership and example
+  arguments: `contracts/capabilities.yaml`.
+- Market and date coverage are discovered dynamically. The current snapshot
+  contains 17 tools; extra tools require review, not an automatic count failure.
+- Both hosts use the same task classification, evidence and safety requirements.
+  Tool namespace prefixes, authorization UI and file presentation may differ.
 
-The package uses `.mcp.json` to connect the `anchises_analysis` server directly
-to the production Streamable HTTP endpoint. It does not depend on a Developer
-Mode App ID. Local and cross-workspace Repo Marketplace installations use the
-same endpoint, same workflow core, and public metadata. Claude discovers only
-the coordinator; the four specialist bodies remain internal workflow sources on
-that platform. A future public Plugin Directory submission must submit and scan
-the production MCP URL directly and use the same canonical bundle and public
-metadata.
+The package does not depend on a Developer Mode App ID. Local and cross-workspace
+Repo Marketplace installations use the same workflow core. A public directory
+submission must submit and scan the production MCP URL directly.
 
-## Skill architecture and entry
+Ordinary research obtains service state once and probes the six-hour update
+cache. Only due checks fetch Git tags; only actionable updates produce reminders.
+Explicit diagnostics and update requests retain their guarded
+platform-specific release check. No installer changes host permission settings.
+Claude Chat/Cowork require separate validation; Claude Code support is not proof
+of their compatibility.
 
-The canonical package holds `.mcp.json` and all business workflows.
-`.codex-plugin/plugin.json` exposes five Skill descriptions as peer routing
-entries. Four are thin wrappers that retain their original frontmatter and
-read workflow bodies from `anchises-analysis/workflows`. The repository-root
-`.claude-plugin/plugin.json` points directly to the self-contained
-`plugins/anchises-analysis/skills/anchises-analysis` root, so Claude sees one
-Skill without any copied business prompt:
+## News
 
-- `anchises-analysis` is a thin coordinator for generic, mixed, and ambiguous
-  requests. Its references provide the canonical classification, global
-  request state, shared company-introduction component, access, identity,
-  safety, error, and response-finalization rules.
-- `company-brief` owns one-to-five current company introductions.
-- `company-report` owns deep research and is the only Skill allowed to call
-  `prepare_company_report_generation`.
-- `company-comparison` owns relative positioning and cross-company judgments.
-- `market-analysis` owns supported-market discovery, screens, rankings,
-  historical data, bounded SQL, and focused CSV exports.
-
-A clear specialist request may enter its matching Skill directly in Codex. In
-Claude, every request enters the single coordinator and the matching workflow
-is loaded as an internal document. Every specialist reads the same
-canonical `primary_task` rules and must stop if it does not own the result;
-downstream workflows never reclassify.
-
-Whenever a Codex Skill or the Claude coordinator is selected for a business request,
-it performs one cache-first platform Tag check and calls
-`get_connection_status({})` once. On a cache miss, the host directly runs one
-read-only `git ls-remote --` against the allowlisted repository; the bundled
-network-free Python parser considers only the selected platform namespace and
-accepts a newer release only when its Tag points to the current remote `main`
-head. Codex uses `anchises-analysis/codex/v*`; Claude uses
-`anchises-analysis/claude/v*`. Plugin discovery remains independent of the MCP
-service version.
-
-`Approve for me` can Auto-review the current Git lookup but does not itself
-create a persistent rule. For one-time setup across the same local user's
-tasks and workspaces, temporarily select `Ask for approval`, request
-“为 Anchises Analysis 启用永久版本检查”, and choose `Always allow` for the exact
-fixed-repository Git prefix. The plugin never creates or edits
-`~/.codex/rules/default.rules`, and no reusable permission covers Python or
-the installation flow.
-
-An available update is shown only as a final operational footer after the
-business answer. Installation requires an explicit sentence naming Anchises
-Analysis and the install/update intent. The fixed updater supports only the
-allowlisted Git Marketplace source, executes each preflight, upgrade, install,
-and verification command once, and stops on the first failure without
-fallback. An explicit Marketplace ref must be `main`; a missing or `null` ref
-is accepted only when the already captured remote refs show that `HEAD`,
-`refs/heads/main`, and the release Tag resolve to the same commit. Local
-development Marketplaces continue to use the maintainer's manual cachebuster
-and reinstall flow. A successful installation requires a new Codex task
-because the current task retains its startup Skill and MCP catalog.
-
-Claude preserves the same cache TTLs, silent failure behavior, exact named
-authorization, decline semantics, and final-footer placement. Claude Code uses
-the fixed Marketplace refresh and plugin update sequence after a fresh Tag
-recheck. Claude Chat, Desktop, and Cowork perform the fresh recheck but hand the
-user to `Customize → Plugins → Anchises Analysis → Update`; they never claim
-the UI update completed. Every Claude installation or update requires a new
-conversation.
-
-The same coordinator also owns `primary_task=diagnostics`. Explicit health,
-status, connection, version, and update-only requests call
-`get_connection_status({})` once and independently check only the active
-host's Tag namespace once. Normal diagnostics use the existing one-hour or
-ten-minute cache; “重新检查”, “立即刷新”, and “强制刷新” skip cache reading and
-perform one fixed Tag lookup. Diagnostics never call HTTP `/health`, stock
-tools, report tools, or an installer. They explicitly report `current`, while
-automatic business checks keep that state silent. “检查并安装 Anchises Analysis
-更新” remains the existing fresh-recheck update or Claude UI-handoff route and
-does not call MCP.
+News analysis searches the corpus first, respects NEWS_ACCESS and selects at
+most five articles per user request. Web research preparation returns a prompt,
+not web results. Only actual host browsing can support claims of live research.
+News retrieval can also supply evidence to reports, briefs and comparisons
+without changing their primary task.
 
 ## Company briefs
 
@@ -165,21 +91,15 @@ report.
 
 ## Structured stock data
 
-Structured coverage is limited to:
-
-- ASX
-- CSE
-- NASDAQ
-- NYSE
-- TSX
-- TSXV
-
-The 12 Hosted MCP tools are:
+Use `get_available_exchanges` for current coverage and `get_available_dates`
+for actual trading dates. `list_stock_tables` discovers physical SQL tables,
+not dates. The 17 current Hosted MCP tools are:
 
 - `get_connection_status`
 - `get_available_exchanges`
 - `get_latest_dates`
 - `get_stock_schema`
+- `get_available_dates`
 - `list_stock_tables`
 - `get_table_schema`
 - `screen_stocks`
@@ -187,6 +107,10 @@ The 12 Hosted MCP tools are:
 - `run_readonly_sql`
 - `resolve_company_identity`
 - `prepare_company_report_generation`
+- `list_news_filters`
+- `search_news`
+- `get_news_article`
+- `prepare_news_web_research`
 - `create_csv_export`
 
 CSV exports default to 3600 seconds (60 minutes) and may be explicitly set from
@@ -210,7 +134,7 @@ queries.
 ## Cross-workspace Codex installation
 
 The public repository can be installed from a different OpenAI workspace
-without creating an Anchises Analysis App ID:
+without creating an Mining Market Research App ID:
 
 ```bash
 codex plugin marketplace add \
@@ -222,7 +146,7 @@ codex plugin marketplace add \
 codex plugin add anchises-analysis@Anchises-Analysis
 ```
 
-The plugin install supplies both the five Skills and the remote MCP definition;
+The plugin install supplies both the seven Skills and the remote MCP definition;
 a separate `codex mcp add` is not required. Managed workspaces may require an
 administrator to allowlist the Git source and exact MCP URL. Start a new Codex
 task after installing or updating the plugin.
@@ -243,15 +167,60 @@ claude plugin marketplace add \
 claude plugin install anchises-analysis@anchises-capital
 ```
 
-Claude Chat, Desktop, and Cowork use **Customize → Plugins → Personal plugins
-→ + → Add marketplace → Add from a repository** with
-`https://github.com/2026Allin/anchises-stock-qa`. All Claude surfaces load the
-same single visible self-contained Skill, unchanged business workflows, and public MCP
-definition. The complete install, verification, update, and release procedure
-is in
-[the Claude guide](../../docs/anchises-analysis-claude-install.md).
+Claude Code loads the same seven Skills. Other Claude surfaces require separate
+validation. See [the Claude guide](../../docs/anchises-analysis-claude-install.md)
+and [architecture](../../docs/native-plugin-architecture.md).
 
-## Contract sync
+## Upgrade and update reminders
+
+Every business entry requires an actual per-request `update_state.py check`;
+previous-turn cache results must not be used to skip it. `check --allow-network`
+combines probe, one fixed 15-second Git lookup when due, and result recording.
+The host must already allow this execution; the flag is not a permission grant.
+Finalization uses `notice`, then `ack` only for a notice included in the answer.
+No background execution or guaranteed agent compliance is claimed.
+
+### Build and verify a Claude test package
+
+Run from the repository root:
+
+```sh
+python3 plugins/anchises-analysis/scripts/run_update_scenarios.py
+python3 plugins/anchises-analysis/scripts/build_test_package.py --output-root /tmp/mining-market-research-builds
+```
+
+Reuse that output root. Each build reserves a unique build-ID directory, stages
+matching Claude manifest/metadata in the ZIP, verifies seven Skill names, Chat
+parameters, package-relative links and ZIP bytes, and writes a SHA-256 receipt.
+The source manifests and previously installed plugins are not modified.
+No GitHub publication occurs. Only the ZIP is uploaded; keep its neighboring
+receipt for identifying the exact build. Use the receipt's release_id, not the
+source checkout's release_id, when verifying a newly loaded Chat session.
+The offline scenario runner never queries a real repository or changes normal
+update state. See the [acceptance plan](../../docs/update-reminder-acceptance.md)
+for the separate real-host checks that remain required.
+
+Claude Chat uses session-only checking: first use in every new conversation,
+then six hours after its last successful check. Newer releases prompt manual
+update/upload and a new conversation; no native CLI or installed-version claim.
+Its temporary cache does not persist across conversations. The native behavior
+below applies to Codex and Claude Code only. All surfaces remain silent when
+there is no newer release; decline/ignore never authorizes installation.
+
+Use the dedicated `upgrade` Skill to check or upgrade Mining Market Research.
+A check-only request never installs; an explicit upgrade authorizes one guarded
+native attempt. Successful installation is verified and requires restarting
+the session / opening a new conversation to load updated Skills and MCP tools.
+
+Every substantive plugin use probes shared persistent state. The first use,
+and first use six hours after the last successful check, checks published tags.
+No update or a failed automatic check produces no update-related answer text.
+Refusal or silence means no installation and no timer reset: the next six-hour
+cycle can remind about the same version. There is no permanent opt-out or hook.
+Failed checks back off for 30 minutes. Existing pre-mechanism sessions need one
+restart; agents cannot inject instructions into an already loaded old session.
+
+## Contract synchronization
 
 The checked-in descriptor snapshot is generated from the public service with a
 credential-free, read-only JSON-RPC client:
@@ -260,7 +229,7 @@ credential-free, read-only JSON-RPC client:
 .venv/bin/python plugins/anchises-analysis/contracts/sync_hosted_contract.py --check
 ```
 
-The snapshot must contain exactly 12 strict descriptors, a semantic version
+The snapshot must contain the 17 current required descriptors, a semantic version
 observed from `initialize.serverInfo.version`, the company-identity resolver,
 a four-required-field prepare schema, noauth security, Prompt pack `5.1`,
 opaque cursor pagination, dynamic data/export policy metadata, and no legacy
@@ -268,9 +237,9 @@ cached-report tools.
 
 The synchronizer validates internal capability profile `1.9.0-draft` and a
 service-only `get_connection_status({})` schema with no plugin release fields.
-Contract comparison ignores only the observed MCP version and sync timestamp;
-tool schemas, security metadata, annotations, instructions, and descriptor
-hash remain strict. Git tags are the only plugin update signal.
+Compatibility checking ignores descriptive wording and observed service versions.
+New tools and optional arguments produce review notices; required-tool deletion
+and existing schema/security changes block automatic acceptance. Git tags are the only plugin update signal.
 
 ## Validation
 
@@ -293,11 +262,11 @@ Then run:
 .venv/bin/python -m unittest discover -s tests -v
 
 .venv/bin/python \
-  plugins/anchises-analysis/skills/anchises-analysis/scripts/validate_plugin_policy.py
+  plugins/anchises-analysis/skills/mining-market-research/scripts/validate_plugin_policy.py
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/anchises-analysis
+  plugins/anchises-analysis/skills/mining-market-research
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
@@ -319,10 +288,10 @@ Then run:
   ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py \
   plugins/anchises-analysis
 
-claude plugin validate . --strict
+claude plugin validate ./plugins/anchises-analysis --strict
 ```
 
 The Claude validation command requires the Claude Code CLI. The unit suite
-still validates both checked-in manifests, the single visible self-contained
-Skill, closed route targets, release identities, Tag parsers, fixed updater
-sequences, shared workflow bodies, and the unchanged MCP contract.
+still validates both checked-in manifests, the same seven native
+Skills, closed route targets, release identities, Tag parsers, fixed updater
+sequences, shared workflow bodies, and the current MCP contract.

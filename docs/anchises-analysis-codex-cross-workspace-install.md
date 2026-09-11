@@ -1,8 +1,8 @@
-# Anchises Analysis: Cross-workspace Codex installation
+# Mining Market Research: Cross-workspace Codex installation
 
-This guide installs the complete Anchises Analysis Codex plugin from GitHub for
+This guide installs the complete Mining Market Research Codex plugin from GitHub for
 a user in another OpenAI workspace that permits custom Git marketplaces and
-plugin-bundled MCP servers. The package includes five Skills and one bundled
+plugin-bundled MCP servers. The package includes seven Skills and one bundled
 remote MCP server; it does not use `Share with you`, a Developer Mode App ID,
 Portal Scan, or a separate `codex mcp add` command.
 
@@ -12,7 +12,8 @@ Portal Scan, or a separate `codex mcp add` command.
 - Marketplace: `Anchises-Analysis`
 - Skills: `anchises-analysis`, `company-brief`, `company-report`,
   `company-comparison`, and `market-analysis`
-- MCP server key: `anchises_analysis`
+- MCP server key: `mining_market_research`
+- MCP server name: `Mining Market Research`
 - MCP URL: `https://mcp.anchisesdata.com/mcp`
 - MCP version: discovered dynamically from `initialize.serverInfo.version`
 - Tools: 12
@@ -57,7 +58,7 @@ Sparse paths
 plugins/anchises-analysis
 ```
 
-Add the marketplace, select **Anchises Analysis**, and install it. Start a new
+Add the marketplace, select **Mining Market Research**, and install it. Start a new
 Codex task after installation so the new Skill catalog and MCP runtime are
 loaded.
 
@@ -66,12 +67,12 @@ loaded.
 1. Run `codex plugin list` and confirm
    `anchises-analysis@Anchises-Analysis` is installed and enabled at the
    expected version.
-2. In a new task, verify that all five Skills are available.
-3. Open `/mcp` and confirm the bundled `anchises_analysis` server is connected.
-4. Confirm MCP discovery returns exactly 12 tools, reports a semantic version,
+2. In a new task, verify that all seven Skills are available.
+3. Open `/mcp` and confirm the bundled `mining_market_research` server is connected.
+4. Confirm MCP discovery returns 17 required tools, reports a semantic version,
    and matches the version returned by `/health`.
-5. Run one Company Brief, Company Report, Company Comparison, and Market
-   Analysis request.
+5. Run one Company Brief, Company Report, Company Comparison, Market Analysis,
+   and News Analysis request.
 6. Verify a market result displays no more than 200 rows, cursor continuation
    occurs only after an explicit next-page request, and exports follow the
    current dynamic policy.
@@ -83,7 +84,7 @@ one-hour success cache has expired. To approve that exact lookup once for the
 same local user across Codex tasks and workspaces:
 
 1. Temporarily select **Ask for approval** in the Codex permissions control.
-2. In a new task, send: `为 Anchises Analysis 启用永久版本检查`.
+2. In a new task, send: `为 Mining Market Research 启用永久版本检查`.
 3. In the approval dialog, review the fixed prefix and choose **Always allow**:
 
    ```text
@@ -94,12 +95,12 @@ same local user across Codex tasks and workspaces:
 
 **Approve for me** is Auto-review and can approve a current check, but it does
 not itself guarantee a persistent user rule. Codex may store an explicit
-**Always allow** choice in `~/.codex/rules/default.rules`. Anchises Analysis
+**Always allow** choice in `~/.codex/rules/default.rules`. Mining Market Research
 never writes that file and never asks for a reusable `python3`, shell, plugin
 installation, or general-network rule. Each colleague must make this local
 security choice once; it is not distributed by the plugin.
 
-No Anchises Analysis Developer Mode App should be required or enabled for this
+No Mining Market Research Developer Mode App should be required or enabled for this
 verification. If the old App remains available as a rollback resource, leave
 it disabled while testing the bundled MCP to avoid duplicate tool surfaces.
 
@@ -136,7 +137,7 @@ codex plugin marketplace upgrade Anchises-Analysis
 codex plugin add anchises-analysis@Anchises-Analysis
 ```
 
-Later Git Marketplace releases are checked once whenever an Anchises Skill is
+Later Git Marketplace releases are checked once whenever a Mining Market Research Skill is
 selected for business work. A cache miss executes the fixed, read-only
 `git ls-remote --` command directly under Codex's scoped approval, then passes
 the captured refs to a network-free Python parser. The parser considers only

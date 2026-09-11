@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "anchises-analysis",
-      "displayName": "Anchises Analysis",
-      "source": "./",
+      "displayName": "Mining Market Research",
+      "source": "./plugins/anchises-analysis",
       "description": "Research public companies with live web sources and analyze stock-market data.",
       "category": "productivity"
     }

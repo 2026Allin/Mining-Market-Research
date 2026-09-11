@@ -1,16 +1,17 @@
-# Anchises Analysis Plugin Directory Listing
+# Mining Market Research Plugin Directory Listing
 
-Shared Codex and Claude release copy for `Anchises Analysis 0.6.0-dev.9`.
+Shared Codex and Claude release copy for `Mining Market Research 0.6.0-dev.9`.
 
 ## Identity
 
-- Plugin name: Anchises Analysis
+- Plugin name: Mining Market Research
 - Publisher: Anchises Capital
 - Publisher email: `tech@anchisesgroup.com`
 - Category: Productivity
 - Primary listing locale: English (en)
 - Version: 0.6.0-dev.9
 - Hosted MCP: `https://mcp.anchisesdata.com/mcp`
+- Hosted MCP name: `Mining Market Research`
 - MCP version: discovered dynamically at connection time
 - Data API version: 0.3.0
 - Contract version: `1.9.0-draft`
@@ -23,7 +24,7 @@ Live company research and server-side stock-market analysis.
 
 ## Long description
 
-Anchises Analysis combines source-linked live public-company research with structured stock-market analysis. It resolves a company name or ticker to a canonical exchange, ticker, and company name, verifies ambiguous or external listings with primary public sources, and prepares company research for the host to execute with live web search directly in the current conversation. The MCP service does not persist the resulting report. Full matched stock-data ranges can be used server-side for filtering, statistics, rankings, and aggregation; each call displays at most 200 rows and can continue through an opaque cursor only when the user asks for the next page. Top-N bounds the complete logical ranked result rather than the current display page. Temporary CSV downloads follow server-enforced query and export capabilities: eligibility, allowed screen or SQL source tools, and hard limits are returned for each query. The plugin never bypasses an actual service refusal through split queries. Anchises structured stock data covers ASX, CSE, NASDAQ, NYSE, TSX, and TSXV; company research may cover verified companies outside those markets. Reports and market analysis are informational, not official filings or investment advice. Public access requires no Anchises Analysis account or credentials and has no account-linked cross-session cumulative budget; shared short-term service limits still apply. CSV URLs are short-lived bearer links and should not be shared.
+Mining Market Research combines source-linked live public-company research with structured stock-market analysis. It resolves a company name or ticker to a canonical exchange, ticker, and company name, verifies ambiguous or external listings with primary public sources, and prepares company research for the host to execute with live web search directly in the current conversation. The MCP service does not persist the resulting report. Full matched stock-data ranges can be used server-side for filtering, statistics, rankings, and aggregation; each call displays at most 200 rows and can continue through an opaque cursor only when the user asks for the next page. Top-N bounds the complete logical ranked result rather than the current display page. Temporary CSV downloads follow server-enforced query and export capabilities: eligibility, allowed screen or SQL source tools, and hard limits are returned for each query. The plugin never bypasses an actual service refusal through split queries. Structured market coverage and trading dates are discovered dynamically from the service; company research may cover verified companies outside those markets. News research searches the corpus first, reads at most five selected articles per request, and uses actual host web research for any supplement. Reports and market analysis are informational, not official filings or investment advice. Public access requires no Mining Market Research account or credentials and has no account-linked cross-session cumulative budget; shared short-term service limits still apply. CSV URLs are short-lived bearer links and should not be shared.
 
 ## Starter prompts
 
@@ -44,7 +45,7 @@ Anchises Analysis combines source-linked live public-company research with struc
 
 - Logo: `plugins/anchises-analysis/assets/logo.png`
 - Composer icon: `plugins/anchises-analysis/assets/composer-icon.png`
-- Alt text: `Anchises Analysis logo`
+- Alt text: `Mining Market Research logo`
 
 Custom UI: None. Screenshots: None. Do not submit placeholder screenshots.
 
@@ -55,7 +56,7 @@ Custom UI: None. Screenshots: None. Do not submit placeholder screenshots.
 - A company name, ticker, or clear chat reference may start identity resolution.
 - Ambiguous listings and share classes are not selected silently.
 - Verified external-market companies may receive live public-source research,
-  but not Anchises structured stock data.
+  but not Mining Market Research structured stock data.
 - MCP prepares a prompt; the Host performs web research and writes the report.
 - The final report remains in the current conversation and is not written back
   to MCP.
@@ -76,7 +77,7 @@ Custom UI: None. Screenshots: None. Do not submit placeholder screenshots.
 - Public noauth access has no account-linked cross-session cumulative budget;
   shared short-term service limits still apply.
 - Temporary CSV links default to 60 minutes and are bearer capabilities.
-- Each selected Anchises Skill checks exactly one host-specific Git Tag
+- Each selected Mining Market Research Skill checks exactly one host-specific Git Tag
   namespace once. A cache miss uses one directly approved, fixed-repository
   `git ls-remote --`; Python parses the captured refs without network access.
   No-update, unknown, and failed checks are silent; installation requires an
@@ -90,7 +91,7 @@ Custom UI: None. Screenshots: None. Do not submit placeholder screenshots.
 | Surface | Expected result |
 |---|---|
 | `/health` | HTTP 200; semantic version; ready; public access; authentication not required |
-| MCP initialize | Anchises Analysis; semantic version matches `/health` |
+| MCP initialize | Mining Market Research; semantic version matches `/health` |
 | `tools/list` | Exactly 12 noauth tools |
 | Identity resolver | resolved / ambiguous / not_found_in_supported_markets |
 | Report preparation | Four required inputs; Prompt pack 5.1; Host action |

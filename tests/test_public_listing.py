@@ -74,10 +74,10 @@ class PublicListingTest(unittest.TestCase):
             "current conversation",
             "does not persist",
             "official filings or investment advice",
-            "no Anchises Analysis account or credentials",
+            "no Mining Market Research account or credentials",
             "shared short-term service limits",
             "short-lived bearer links",
-            "ASX, CSE, NASDAQ, NYSE, TSX, and TSXV",
+            "discovered dynamically",
             "at most 200 rows",
             "opaque cursor",
             "Top-N bounds the complete logical ranked result",
@@ -185,7 +185,7 @@ class PublicListingTest(unittest.TestCase):
         snapshot = self.availability.split(
             "## Current public planning snapshot (208)",
             1,
-        )[1].split("## Approved release decision for Anchises Analysis", 1)[0]
+        )[1].split("## Approved release decision for Mining Market Research", 1)[0]
         entries = [
             line.removeprefix("- ")
             for line in snapshot.splitlines()

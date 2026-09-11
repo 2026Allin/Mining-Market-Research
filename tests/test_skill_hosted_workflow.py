@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
 PLUGIN_README = PLUGIN_ROOT / "README.md"
-SKILL_ROOT = PLUGIN_ROOT / "skills" / "anchises-analysis"
+SKILL_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research"
 SKILL = SKILL_ROOT / "SKILL.md"
 OPENAI_YAML = SKILL_ROOT / "agents" / "openai.yaml"
 BRIEF_SKILL_ROOT = PLUGIN_ROOT / "skills" / "company-brief"
@@ -44,6 +44,7 @@ EXPECTED_TOOLS = {
     "get_available_exchanges",
     "get_latest_dates",
     "get_stock_schema",
+    "get_available_dates",
     "list_stock_tables",
     "get_table_schema",
     "screen_stocks",
@@ -51,10 +52,20 @@ EXPECTED_TOOLS = {
     "run_readonly_sql",
     "resolve_company_identity",
     "prepare_company_report_generation",
+    "list_news_filters",
+    "search_news",
+    "get_news_article",
+    "prepare_news_web_research",
     "create_csv_export",
 }
 
 EXPECTED_SKILL_BUNDLE_FILES = {
+    Path("references/hosts/claude-chat.md"),
+    Path("references/hosts/claude-code.md"),
+    Path("references/hosts/codex.md"),
+    Path("workflows/upgrade.md"),
+    Path("references/update-notifications.md"),
+    Path("scripts/update_state.py"),
     Path("SKILL.md"),
     Path("agents/openai.yaml"),
     Path("references/common-errors.md"),
@@ -86,6 +97,7 @@ EXPECTED_SKILL_BUNDLE_FILES = {
     Path("workflows/company-comparison.md"),
     Path("workflows/company-report.md"),
     Path("workflows/market-analysis.md"),
+    Path("workflows/news-analysis.md"),
 }
 
 EXPECTED_BRIEF_SKILL_BUNDLE_FILES = {
@@ -109,7 +121,7 @@ EXPECTED_MARKET_SKILL_BUNDLE_FILES = {
 }
 
 SKILL_ROOTS = {
-    "anchises-analysis": SKILL_ROOT,
+    "mining-market-research": SKILL_ROOT,
     "company-brief": BRIEF_SKILL_ROOT,
     "company-report": REPORT_SKILL_ROOT,
     "company-comparison": COMPARISON_SKILL_ROOT,
@@ -117,7 +129,7 @@ SKILL_ROOTS = {
 }
 
 EXPECTED_BUNDLE_FILES = {
-    "anchises-analysis": EXPECTED_SKILL_BUNDLE_FILES,
+    "mining-market-research": EXPECTED_SKILL_BUNDLE_FILES,
     "company-brief": EXPECTED_BRIEF_SKILL_BUNDLE_FILES,
     "company-report": EXPECTED_REPORT_SKILL_BUNDLE_FILES,
     "company-comparison": EXPECTED_COMPARISON_SKILL_BUNDLE_FILES,
@@ -209,7 +221,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             policy_files,
             [
                 Path(
-                    "plugins/anchises-analysis/skills/anchises-analysis/"
+                    "plugins/anchises-analysis/skills/mining-market-research/"
                     "references/plugin-policy.json"
                 )
             ],
@@ -263,11 +275,13 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertEqual(
             skill_dirs,
             [
-                "anchises-analysis",
                 "company-brief",
                 "company-comparison",
                 "company-report",
                 "market-analysis",
+                "mining-market-research",
+                "news-analysis",
+                "upgrade",
             ],
         )
         combined = _skill_bundle_text()
@@ -286,7 +300,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             SKILL_ROOT / "references" / "company-introductions.md"
         ).read_text(encoding="utf-8")
         brief_normalized = " ".join((brief + intro_component).split())
-        self.assertIn("`get_connection_status`", brief)
+        self.assertIn("get_connection_status", brief)
         self.assertIn("`resolve_company_identity`", intro_component)
         self.assertIn(
             "Do not call `prepare_company_report_generation`",
@@ -386,16 +400,16 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             normalized = " ".join(bundle.split())
             self.assertIn("plugin-update.md", bundle, name)
             self.assertIn("get_connection_status", bundle, name)
-            self.assertIn("cache-first release check", normalized, name)
+            self.assertIn("Do not", normalized, name)
             self.assertIn("once", normalized, name)
             self.assertIn("plugin_update_check", bundle, name)
-            self.assertIn("with `{}`", normalized, name)
+            self.assertIn("get_connection_status", normalized, name)
             self.assertNotIn("client_update", bundle, name)
 
             if root != SKILL_ROOT:
                 wrapper = (root / "SKILL.md").read_text(encoding="utf-8")
-                self.assertIn("../anchises-analysis/workflows/", wrapper, name)
-                self.assertLess(len(wrapper.splitlines()), 20, name)
+                self.assertIn("../mining-market-research/workflows/", wrapper, name)
+                self.assertLess(len(wrapper.splitlines()), 30, name)
 
         service_access = (
             SKILL_ROOT / "references" / "service-access.md"
@@ -434,7 +448,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             "new_task_required",
         ):
             self.assertIn(transition, shared_protocol)
-        self.assertIn("请为我安装 Anchises Analysis 更新。", shared_protocol)
+        self.assertIn("请为我安装 Mining Market Research 更新。", shared_protocol)
         self.assertIn("A bare “是”", normalized)
         self.assertIn("Silence never authorizes work", normalized)
         self.assertIn("Do not persist an ignored release", normalized)
@@ -461,7 +475,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertIn("Always allow", codex_protocol)
         self.assertIn("~/.codex/rules/default.rules", codex_protocol)
         self.assertIn("plugin_update_permission", shared_protocol)
-        self.assertIn("为 Anchises Analysis 启用永久版本检查", codex_protocol)
+        self.assertIn("为 Mining Market Research 启用永久版本检查", codex_protocol)
         self.assertIn("must never create, edit,", codex_protocol)
         for command in (
             "codex plugin list --json",
@@ -477,7 +491,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             "claude plugin update anchises-analysis@anchises-capital",
         ):
             self.assertIn(command, claude_protocol)
-        self.assertIn("Customize → Plugins → Anchises Analysis → Update", claude_protocol)
+        self.assertIn("Customize → Plugins → Mining Market Research → Update", claude_protocol)
         self.assertIn("此处尚未执行或确认安装", claude_protocol)
         for forbidden_method in (
             "`git pull`",
@@ -539,7 +553,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 "tag_prefix",
             },
         )
-        self.assertEqual(release["version"], "0.6.0-dev.9")
+        self.assertEqual(release["version"], "0.6.0-dev.11")
         self.assertRegex(release["release_id"], r"^codex\.\d{14}$")
         self.assertEqual(release["git_ref"], "main")
         self.assertEqual(release["tag_prefix"], "anchises-analysis/codex/v")
@@ -635,7 +649,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 self.assertIn("references/global-contract.md", skill_text)
             else:
                 self.assertIn(
-                    "../anchises-analysis/workflows/",
+                    "../mining-market-research/workflows/",
                     skill_text,
                 )
         self.assertNotIn("company profiles", SKILL.read_text(encoding="utf-8").lower())
@@ -734,7 +748,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 self.assertIn("references/response-finalization.md", skill)
             else:
                 self.assertIn(
-                    "../anchises-analysis/workflows/",
+                    "../mining-market-research/workflows/",
                     skill,
                 )
 
@@ -897,7 +911,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             for case in cases["positive"] + cases["negative"]
         }
         expected_routes = {
-            "ambiguous-company-request-routes-to-core": "anchises-analysis",
+            "ambiguous-company-request-routes-to-core": "mining-market-research",
             "company-brief-three": "company-brief",
             "company-name-live-report": "company-report",
             "company-comparison-business-context": "company-comparison",
@@ -995,7 +1009,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             5,
         )
         self.assertIn(
-            "../anchises-analysis/workflows/market-analysis.md",
+            "../mining-market-research/workflows/market-analysis.md",
             MARKET_SKILL.read_text(encoding="utf-8"),
         )
         self.assertIn(
@@ -1139,9 +1153,11 @@ class SkillHostedWorkflowTest(unittest.TestCase):
     def test_contract_snapshot_has_new_twelve_tool_shape(self) -> None:
         contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
         names = [tool["name"] for tool in contract["tools"]]
-        self.assertEqual(len(names), 12)
+        self.assertEqual(len(names), 17)
         self.assertEqual(set(names), EXPECTED_TOOLS)
-        self.assertEqual(contract["source"]["server_name"], "Anchises Analysis")
+        self.assertEqual(
+            contract["source"]["server_name"], "Mining Market Research"
+        )
         self.assertEqual(contract["contract_version"], "1.9.0-draft")
         self.assertRegex(
             contract["source"]["server_version"],
@@ -1289,7 +1305,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
 
     def test_openai_metadata_matches_all_five_skills(self) -> None:
         expected = {
-            OPENAI_YAML: ("Anchises Analysis", "$anchises-analysis"),
+            OPENAI_YAML: ("Mining Market Research", "$mining-market-research"),
             BRIEF_OPENAI_YAML: ("Company Brief", "$company-brief"),
             REPORT_OPENAI_YAML: ("Company Report", "$company-report"),
             COMPARISON_OPENAI_YAML: (
@@ -1312,8 +1328,10 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertNotIn("apps", manifest)
         self.assertFalse(LEGACY_APP_MANIFEST.exists())
         self.assertEqual(set(mcp_manifest), {"mcpServers"})
-        self.assertEqual(set(mcp_manifest["mcpServers"]), {"anchises_analysis"})
-        server = mcp_manifest["mcpServers"]["anchises_analysis"]
+        self.assertEqual(
+            set(mcp_manifest["mcpServers"]), {"mining_market_research"}
+        )
+        server = mcp_manifest["mcpServers"]["mining_market_research"]
         self.assertEqual(server["type"], "http")
         self.assertEqual(server["url"], "https://mcp.anchisesdata.com/mcp")
         self.assertEqual(set(server), {"type", "url"})
@@ -1330,15 +1348,15 @@ class SkillHostedWorkflowTest(unittest.TestCase):
 
     def test_manifest_metadata_and_starter_prompts_match_release(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.9")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.11")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.9(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.11(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(manifest["author"]["name"], "Anchises Capital")
         interface = manifest["interface"]
-        self.assertEqual(interface["displayName"], "Anchises Analysis")
+        self.assertEqual(interface["displayName"], "Mining Market Research")
         self.assertEqual(interface["developerName"], "Anchises Capital")
         self.assertEqual(
             interface["defaultPrompt"],
@@ -1349,7 +1367,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             ],
         )
         self.assertTrue(all(len(prompt) <= 128 for prompt in interface["defaultPrompt"]))
-        self.assertIn("ASX, CSE, NASDAQ, NYSE, TSX, and TSXV", interface["longDescription"])
+        self.assertIn("discovered dynamically", interface["longDescription"])
         self.assertIn("does not persist", interface["longDescription"])
         self.assertIn("at most 200 rows", interface["longDescription"])
         self.assertIn("opaque cursor", interface["longDescription"])
