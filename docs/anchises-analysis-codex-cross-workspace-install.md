@@ -34,9 +34,9 @@ codex plugin marketplace add \
   https://github.com/2026Allin/anchises-stock-qa.git \
   --ref main \
   --sparse .agents/plugins \
-  --sparse plugins/anchises-analysis
+  --sparse plugins/mining-market-research
 
-codex plugin add anchises-analysis@Anchises-Analysis
+codex plugin add mining-market-research@Anchises-Analysis
 ```
 
 `qa-v2-auth` is the maintainer's development branch and is not an end-user
@@ -55,7 +55,7 @@ main
 
 Sparse paths
 .agents/plugins
-plugins/anchises-analysis
+plugins/mining-market-research
 ```
 
 Add the marketplace, select **Mining Market Research**, and install it. Start a new
@@ -65,7 +65,7 @@ loaded.
 ## Verify the installation
 
 1. Run `codex plugin list` and confirm
-   `anchises-analysis@Anchises-Analysis` is installed and enabled at the
+   `mining-market-research@Anchises-Analysis` is installed and enabled at the
    expected version.
 2. In a new task, verify that all seven Skills are available.
 3. Open `/mcp` and confirm the bundled `mining_market_research` server is connected.
@@ -134,14 +134,14 @@ configured Git marketplace, reinstall the plugin, and start a new task:
 
 ```bash
 codex plugin marketplace upgrade Anchises-Analysis
-codex plugin add anchises-analysis@Anchises-Analysis
+codex plugin add mining-market-research@Anchises-Analysis
 ```
 
 Later Git Marketplace releases are checked once whenever a Mining Market Research Skill is
 selected for business work. A cache miss executes the fixed, read-only
 `git ls-remote --` command directly under Codex's scoped approval, then passes
 the captured refs to a network-free Python parser. The parser considers only
-`anchises-analysis/codex/v*` and requires the newest Codex tag to point to the
+`mining-market-research/codex/v*` and requires the newest Codex tag to point to the
 remote `main` head. No-update and unknown checks are silent. If a newer release
 exists, the answer ends with an update notice. The user must explicitly reply
 with the full named authorization sentence before Codex runs the single fixed

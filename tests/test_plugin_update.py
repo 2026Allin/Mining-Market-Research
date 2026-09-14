@@ -15,7 +15,7 @@ sys.dont_write_bytecode = True
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
+PLUGIN_ROOT = ROOT / "plugins" / "mining-market-research"
 SCRIPT_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research" / "scripts"
 CHECKER_PATH = SCRIPT_ROOT / "check_plugin_update.py"
 UPDATER_PATH = SCRIPT_ROOT / "update_installed_plugin.py"
@@ -46,15 +46,15 @@ updater = _load_module("anchises_plugin_updater", UPDATER_PATH)
 release_sync = _load_module("anchises_release_sync", SYNC_PATH)
 
 
-PLUGIN_ID = "anchises-analysis@Anchises-Analysis"
+PLUGIN_ID = "mining-market-research@Anchises-Analysis"
 MARKETPLACE = "Anchises-Analysis"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GIT_REF = "main"
-TAG_PREFIX = "anchises-analysis/codex/v"
-CURRENT_VERSION = "0.6.0-dev.11"
-CURRENT_RELEASE = "0.6.0-dev.11+codex.20260806170519"
-TARGET_VERSION = "0.6.0-dev.12"
-TARGET_RELEASE = "0.6.0-dev.12+codex.20260808120000"
+TAG_PREFIX = "mining-market-research/codex/v"
+CURRENT_VERSION = "0.6.0-dev.12"
+CURRENT_RELEASE = "0.6.0-dev.12+codex.20260806170519"
+TARGET_VERSION = "0.6.0-dev.13"
+TARGET_RELEASE = "0.6.0-dev.13+codex.20260808120000"
 MAIN_COMMIT = "1" * 40
 OTHER_COMMIT = "2" * 40
 TAG_OBJECT = "3" * 40
@@ -200,20 +200,20 @@ class PluginTagCheckTest(unittest.TestCase):
         self.assertEqual(result["status"], "release_inconsistent")
 
     def test_codex_ignores_claude_tags_and_uses_semver_order(self) -> None:
-        claude = f"{MAIN_COMMIT}\trefs/tags/anchises-analysis/claude/v9.0.0"
+        claude = f"{MAIN_COMMIT}\trefs/tags/mining-market-research/claude/v9.0.0"
         unrelated = (
             f"{OTHER_COMMIT}\trefs/heads/qa-v2-auth",
             f"{OTHER_COMMIT}\trefs/tags/unrelated/v99.0.0",
         )
         result = self._check(
             _refs(
-                "0.6.0-dev.12",
+                "0.6.0-dev.13",
                 head_commit=OTHER_COMMIT,
                 extra=(claude, *unrelated),
             )
         )
-        self.assertEqual(result["target_version"], "0.6.0-dev.12")
-        self.assertGreater(checker.compare_versions("0.6.0-dev.12", "0.6.0-dev.11"), 0)
+        self.assertEqual(result["target_version"], "0.6.0-dev.13")
+        self.assertGreater(checker.compare_versions("0.6.0-dev.13", "0.6.0-dev.12"), 0)
         self.assertGreater(checker.compare_versions("0.6.0", "0.6.0-dev.99"), 0)
 
     def test_empty_malformed_and_oversized_ref_inputs_are_unknown(self) -> None:

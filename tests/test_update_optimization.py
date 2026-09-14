@@ -10,7 +10,7 @@ import zipfile
 from test_update_state import updates, RELEASE
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / 'plugins/anchises-analysis/scripts'
+SCRIPTS = ROOT / 'plugins/mining-market-research/scripts'
 
 
 def load(name):
@@ -23,6 +23,19 @@ def load(name):
 
 
 class UpdateOptimizationTest(unittest.TestCase):
+    def test_release_snapshot_preserves_source_identity(self):
+        builder = load('build_test_package')
+        source = json.loads((builder.PLUGIN / '.claude-plugin/plugin.json').read_text())
+        with tempfile.TemporaryDirectory() as temp:
+            receipt = builder.build(temp, release_snapshot=True)
+            self.assertEqual(receipt['version'], source['version'])
+            with zipfile.ZipFile(receipt['archive']) as archive:
+                manifest, meta = builder.validate_payload({name: archive.read(name) for name in archive.namelist()})
+                self.assertEqual(manifest['version'], source['version'])
+                self.assertEqual(meta['release_id'], source['version'].split('+')[1])
+            with self.assertRaises(ValueError):
+                builder.build(temp, release_snapshot=True)
+
     def test_controlled_reminder_scenarios(self):
         result = load('run_update_scenarios').run_scenarios()
         self.assertTrue(result['passed'])
@@ -88,7 +101,7 @@ class UpdateOptimizationTest(unittest.TestCase):
                 builder.validate_payload(payload)
 
     def test_all_business_entries_have_per_request_gate(self):
-        plugin = ROOT / 'plugins/anchises-analysis'
+        plugin = ROOT / 'plugins/mining-market-research'
         for name in ('mining-market-research', 'news-analysis', 'company-brief',
                      'company-report', 'company-comparison', 'market-analysis'):
             with self.subTest(skill=name):

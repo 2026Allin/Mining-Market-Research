@@ -1,0 +1,12 @@
+{
+  "purpose": "Real-agent acceptance prompts; expectations are for the reviewer, not injected into analyst questions. Not mocked E2E proof.",
+  "cases": [
+    {"id": "explorer_financing", "prompt": "用 $news-analysis 看看 Scottie Resources 最近的融资公告。对现有股东到底是利好还是稀释压力？股价和成交量有没有印证市场的看法？", "expect": ["news-led fusion", "stage-specific funding and dilution", "daily observation cutoff", "live relevant metal context", "no automatic report"]},
+    {"id": "producer_price_led", "prompt": "用 $market-analysis 分析 ASX:BHP 最近一个月的量价变化。有没有值得注意的异常成交量？更像公司消息驱动，还是铜价和宏观行情带动？", "expect": ["market-led fusion", "actual volume baseline", "publication alignment", "alternative explanations", "no insider assertion"]},
+    {"id": "headlines_only", "prompt": "给我最新三条黄金矿业新闻，只要标题、发布时间和一句话摘要。", "expect": ["no unnecessary market query", "no unnecessary macro search", "no report"]},
+    {"id": "lead_lag", "prompt": "回头看看刚才这家公司：公告之前的放量，能说明有人提前知道消息吗？还是有别的解释？", "expect": ["reuse actual context", "first disclosure uncertainty", "no causal claim from daily bars", "competing explanations"]},
+    {"id": "no_web", "prompt": "这次不要联网搜索，只用数据库里的新闻和日线，判断 LSE:RIO 最近的消息有没有得到量价确认。", "expect": ["respect no web", "macro unavailable disclosed", "no manufactured observations"]},
+    {"id": "translation_only", "prompt": "把刚才那条融资公告翻译成中文，不用做市场分析。", "expect": ["faithful translation", "no fusion expansion"]},
+    {"id": "daily_boundary", "prompt": "如果最新公告发在最近一根日线收盘之后，现在能判断市场已经消化了这条消息吗？请结合刚查到的数据回答。", "expect": ["conditional vs observed distinguished", "no fabricated next-day return", "daily-only limits"]}
+  ]
+}

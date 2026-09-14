@@ -30,7 +30,7 @@ class HostTraceTest(unittest.TestCase):
 
     def test_rejects_bypassed_research_export_and_sql_gates(self):
         trace = {"task": "news", "release_check": True, "claims_web_research": True,
-                 "historical": True, "calls": [
+                 "trading_date_selection": True, "calls": [
             {"tool": "prepare_news_web_research", "arguments": {"q": "gold"}},
             {"tool": "get_news_article", "arguments": {"news_code": 999}},
             {"tool": "run_readonly_sql", "arguments": {"sql": "SELECT COUNT(*) FROM stock_daily"}},

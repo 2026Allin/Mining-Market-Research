@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "anchises-analysis",
+      "name": "mining-market-research",
       "source": {
         "source": "local",
-        "path": "./plugins/anchises-analysis"
+        "path": "./plugins/mining-market-research"
       },
       "policy": {
         "installation": "AVAILABLE",

@@ -83,7 +83,7 @@ App ID.
 
 1. From a Codex account in a different OpenAI workspace with no Mining Market Research
    Developer Mode App, add the Git marketplace at `main` and install
-   `anchises-analysis@Anchises-Analysis`.
+   `mining-market-research@Anchises-Analysis`.
 2. Confirm the plugin installs without an App ID, authentication credential,
    Portal Scan, or workspace share link.
 3. Start a new task and confirm all five Skills are available.
@@ -102,8 +102,8 @@ App ID.
 ## Cross-surface Claude gates
 
 1. In Claude Code, first add `2026Allin/anchises-stock-qa@qa-v2-auth` using
-   sparse paths `.claude-plugin` and `plugins/anchises-analysis`, then install
-   `anchises-analysis@anchises-capital`.
+   sparse paths `.claude-plugin` and `plugins/mining-market-research`, then install
+   `mining-market-research@anchises-capital`.
 2. Confirm Claude Code exposes exactly one `anchises-analysis` Skill, loads one
    `anchises_analysis` MCP server, and routes representative Brief, Report,
    Comparison, and Market requests into the unchanged canonical workflows.
@@ -155,8 +155,8 @@ the capability contract remains compatible.
 - Implement and validate the self-contained Skill and diagnostics workflow on
   `qa-v2-auth`; do not publish a release Tag from the QA branch.
 - Merge the tested release to `main` and push `main` only for a release.
-- Publish Codex releases under `anchises-analysis/codex/v<semver>` and Claude
-  releases under `anchises-analysis/claude/v<semver>`.
+- Publish Codex releases under `mining-market-research/codex/v<semver>` and Claude
+  releases under `mining-market-research/claude/v<semver>`.
 - Each platform Tag must identify the same commit as remote `main`; publishing
   one platform's Tag does not require publishing the other.
 - Never create or push a tag unless the maintainer explicitly requests that

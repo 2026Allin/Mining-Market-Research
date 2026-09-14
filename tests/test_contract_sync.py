@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACTS = ROOT / "plugins" / "anchises-analysis" / "contracts"
+CONTRACTS = ROOT / "plugins" / "mining-market-research" / "contracts"
 TESTS = ROOT / "tests"
 if str(CONTRACTS) not in sys.path:
     sys.path.insert(0, str(CONTRACTS))

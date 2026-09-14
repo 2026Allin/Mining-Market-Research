@@ -7,7 +7,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = (
-    ROOT / "plugins" / "anchises-analysis" / "skills" / "mining-market-research"
+    ROOT / "plugins" / "mining-market-research" / "skills" / "mining-market-research"
 )
 OAUTH_PLAN = ROOT / "docs" / "hosted-mcp-oauth-migration-plan.md"
 
@@ -51,10 +51,10 @@ class ReleaseRepositoryHygieneTest(unittest.TestCase):
     def test_current_release_surfaces_do_not_require_login(self) -> None:
         release_surfaces = (
             ROOT / "README.md",
-            ROOT / "plugins" / "anchises-analysis" / "README.md",
+            ROOT / "plugins" / "mining-market-research" / "README.md",
             ROOT
             / "plugins"
-            / "anchises-analysis"
+            / "mining-market-research"
             / ".codex-plugin"
             / "plugin.json",
             ROOT / "docs" / "anchises-analysis-0.4.0-beta.2-release-notes.md",

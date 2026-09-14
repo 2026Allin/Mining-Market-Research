@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mining Market Research — News Analysis"
+  short_description: "Mining news, catalysts and integrated market impact"
+  default_prompt: "Use $news-analysis to assess a miner's latest announcement alongside volume, price and relevant metals context."

@@ -19,9 +19,9 @@ class MarketplaceManifestTest(unittest.TestCase):
         self.assertEqual(data["interface"]["displayName"], "Mining Market Research")
         plugins = {plugin["name"]: plugin for plugin in data["plugins"]}
 
-        plugin = plugins["anchises-analysis"]
+        plugin = plugins["mining-market-research"]
         self.assertEqual(plugin["source"]["source"], "local")
-        self.assertEqual(plugin["source"]["path"], "./plugins/anchises-analysis")
+        self.assertEqual(plugin["source"]["path"], "./plugins/mining-market-research")
         self.assertEqual(plugin["policy"]["installation"], "AVAILABLE")
         self.assertEqual(plugin["policy"]["authentication"], "ON_USE")
 
@@ -61,10 +61,10 @@ class MarketplaceManifestTest(unittest.TestCase):
                 }
             },
         )
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.11")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.12")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.11(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.12(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(contract["contract_version"], "1.9.0-draft")
@@ -81,8 +81,8 @@ class MarketplaceManifestTest(unittest.TestCase):
             "https://github.com/2026Allin/anchises-stock-qa.git",
             "--ref main",
             "--sparse .agents/plugins",
-            "--sparse plugins/anchises-analysis",
-            "codex plugin add anchises-analysis@Anchises-Analysis",
+            "--sparse plugins/mining-market-research",
+            "codex plugin add mining-market-research@Anchises-Analysis",
             "https://mcp.anchisesdata.com/mcp",
             "all seven Skills",
             "17 required tools",

@@ -19,7 +19,7 @@ sys.dont_write_bytecode = True
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
+PLUGIN_ROOT = ROOT / "plugins" / "mining-market-research"
 SKILL_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research"
 SCRIPT_ROOT = SKILL_ROOT / "scripts"
 CHECKER_PATH = SCRIPT_ROOT / "check_plugin_update.py"
@@ -56,15 +56,15 @@ updater = _load_module("anchises_claude_plugin_updater", UPDATER_PATH)
 release_sync = _load_module("anchises_claude_release_sync", SYNC_PATH)
 
 
-PLUGIN_ID = "anchises-analysis@anchises-capital"
+PLUGIN_ID = "mining-market-research@anchises-capital"
 MARKETPLACE = "anchises-capital"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GITHUB_REPOSITORY = "2026Allin/anchises-stock-qa"
-TAG_PREFIX = "anchises-analysis/claude/v"
-CURRENT_VERSION = "0.6.0-dev.11"
-CURRENT_RELEASE = "0.6.0-dev.11+claude.20260806170037"
-TARGET_VERSION = "0.6.0-dev.12"
-TARGET_RELEASE = "0.6.0-dev.12+claude.20260808120000"
+TAG_PREFIX = "mining-market-research/claude/v"
+CURRENT_VERSION = "0.6.0-dev.12"
+CURRENT_RELEASE = "0.6.0-dev.12+claude.20260806170037"
+TARGET_VERSION = "0.6.0-dev.13"
+TARGET_RELEASE = "0.6.0-dev.13+claude.20260808120000"
 MAIN_COMMIT = "4" * 40
 OTHER_COMMIT = "5" * 40
 
@@ -224,7 +224,7 @@ class ClaudeManifestTest(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(len(contract["tools"]), 17)
+        self.assertEqual(len(contract["tools"]), 18)
 
         release = json.loads(CLAUDE_RELEASE_PATH.read_text(encoding="utf-8"))
         self.assertEqual(
@@ -251,14 +251,14 @@ class ClaudeManifestTest(unittest.TestCase):
         normalized = " ".join(guide.split())
         for expected in (
             "2026Allin/anchises-stock-qa@main",
-            "claude plugin install anchises-analysis@anchises-capital",
+            "claude plugin install mining-market-research@anchises-capital",
             "claude --plugin-dir .",
             "Claude Chat",
             "Claude Desktop",
             "Cowork",
             "Claude Code",
             "not certified",
-            "anchises-analysis/claude/v<semver>",
+            "mining-market-research/claude/v<semver>",
             "all seven Skills",
             "17 required tools",
         ):
@@ -268,7 +268,7 @@ class ClaudeManifestTest(unittest.TestCase):
 class ClaudeTagCheckTest(unittest.TestCase):
     def test_claude_namespace_is_separate_and_uses_the_fixed_repository(self) -> None:
         codex_tag = (
-            f"{MAIN_COMMIT}\trefs/tags/anchises-analysis/codex/v99.0.0"
+            f"{MAIN_COMMIT}\trefs/tags/mining-market-research/codex/v99.0.0"
         )
         result = checker.check_remote_refs(
             _refs(TARGET_VERSION, extra=(codex_tag,)),
@@ -296,7 +296,7 @@ class ClaudeTagCheckTest(unittest.TestCase):
             ):
                 fallback = checker._default_cache_path("claude")
                 self.assertTrue(fallback.is_absolute())
-                self.assertIn("anchises-analysis-claude-tags-", fallback.name)
+                self.assertIn("mining-market-research-claude-tags-", fallback.name)
             with mock.patch.dict(os.environ, {"CLAUDE_PLUGIN_DATA": "/"}):
                 self.assertNotEqual(
                     checker._default_cache_path("claude"),
@@ -507,7 +507,7 @@ class SharedBundleRegressionTest(unittest.TestCase):
             "company-brief.md": "exactly three or four prose sentences",
             "company-comparison.md": "Never silently compare only the first five",
             "company-report.md": "only plugin Skill allowed to call",
-            "market-analysis.md": "complete matched range for server-side filtering",
+            "market-analysis.md": "Complete analysis authorizes necessary cursor",
         }
         workflow_root = CLAUDE_SKILL_ROOT / "workflows"
         for filename, expected in expected_fingerprints.items():

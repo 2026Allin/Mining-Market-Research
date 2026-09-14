@@ -6,13 +6,15 @@ their installation and runtime capabilities require separate validation.
 
 ## Package identity
 
-- Plugin: `anchises-analysis`
+- Plugin: `mining-market-research`
 - Marketplace: `anchises-capital`
-- Install ID: `anchises-analysis@anchises-capital`
-- Source: `plugins/anchises-analysis`
+- Install ID: `mining-market-research@anchises-capital`
+- Source: `plugins/mining-market-research`
 - MCP: `https://mcp.anchisesdata.com/mcp`
 - Product version: `0.6.0-dev.11`
-- Legacy update namespace retained: `anchises-analysis/claude/v<semver>`
+- New update namespace: `mining-market-research/claude/v<semver>`; see the
+  [identity migration boundary](plugin-brand-migration.md). This identity change
+  is unpublished and does not rename an existing installation.
 
 ## Install and migrate
 
@@ -20,7 +22,7 @@ Published GitHub installation (local changes are not published automatically):
 
 ```bash
 claude plugin marketplace add 2026Allin/anchises-stock-qa@main
-claude plugin install anchises-analysis@anchises-capital
+claude plugin install mining-market-research@anchises-capital
 ```
 
 For an existing root-layout installation, refresh the marketplace before the
@@ -28,13 +30,13 @@ upgrade so its source resolves to the new self-contained package:
 
 ```bash
 claude plugin marketplace update anchises-capital
-claude plugin update anchises-analysis@anchises-capital
+claude plugin update mining-market-research@anchises-capital
 ```
 
 For local testing of the current uncommitted source:
 
 ```bash
-claude --plugin-dir ./plugins/anchises-analysis
+claude --plugin-dir ./plugins/mining-market-research
 ```
 
 Start a fresh session after installation or update. Do not install a copied
@@ -59,7 +61,7 @@ a failed check never authorizes changing user settings or bypassing access.
 ## Release checks
 
 ```bash
-python3 plugins/anchises-analysis/scripts/sync_plugin_release.py --platform all --check
+python3 plugins/mining-market-research/scripts/sync_plugin_release.py --platform all --check
 ```
 
 Both platform manifests must carry the same product version. Keep separate

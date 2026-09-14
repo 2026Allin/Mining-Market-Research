@@ -22,7 +22,8 @@
         "get_latest_dates",
         "resolve_company_identity",
         "prepare_company_report_generation",
-        "screen_stocks"
+        "screen_stocks",
+        "get_company_report"
       ],
       "forbidden_operations": [
         "http_health",
@@ -168,7 +169,7 @@
         "get_stock_schema",
         "screen_stocks"
       ],
-      "expected_behavior": "Use one exact TICKER in filter with 40 values, select necessary fields, and call create_csv_export only after eligible_by_query=true."
+      "expected_behavior": "Use one query for the 40 values: an exact TICKER in filter for one exchange, or instruments with verified exchange/ticker pairs across exchanges. Select necessary fields for performance, not export eligibility. Use the original query_id after eligible_by_query=true and judge success only from the actual export response."
     },
     {
       "id": "single-stock-one-year",
@@ -198,26 +199,27 @@
     {
       "id": "company-name-live-report",
       "category": "direct",
-      "prompt": "Research Apple and generate a current Chinese company report with source links.",
+      "prompt": "Show Apple's company research report in Chinese with source links.",
       "expected_primary_task": "full_report",
       "expected_skill": "company-report",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
       "expected_arguments": {
         "resolve_company_identity": {
           "query": "Apple",
           "purpose": "company_report"
         },
-        "prepare_company_report_generation": {
+        "get_company_report": {
           "exchange": "NASDAQ",
           "ticker": "AAPL",
           "company_name": "Apple Inc.",
-          "output_locale": "zh-CN"
+          "output_locale": "zh-CN",
+          "mode": "auto"
         }
       },
-      "expected_behavior": "Execute prompt_text with Host live web search and return the completed report, not the prompt."
+      "expected_behavior": "On report_available present the original date and faithful Chinese translation, then ask once whether to refresh. On generation_ready execute prompt_text with Host live web search and return the completed report, not the prompt. On not_eligible explain and stop."
     },
     {
       "id": "ticker-only-live-report",
@@ -225,18 +227,19 @@
       "prompt": "Research AAPL and produce an English company report.",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
       "expected_arguments": {
         "resolve_company_identity": {
           "query": "AAPL",
           "purpose": "company_report"
         },
-        "prepare_company_report_generation": {
+        "get_company_report": {
           "exchange": "NASDAQ",
           "ticker": "AAPL",
           "company_name": "Apple Inc.",
-          "output_locale": "en"
+          "output_locale": "en",
+          "mode": "auto"
         }
       }
     },
@@ -244,11 +247,11 @@
       "id": "context-reference-live-report",
       "category": "indirect",
       "prompt": "Now research the second company above and write its report.",
+      "context": "The second company has already been verified as NASDAQ:AAPL, Apple Inc.",
       "expected_tools": [
-        "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
-      "expected_behavior": "Extract only the referenced company query from chat context; never send the full conversation to MCP."
+      "expected_behavior": "Reuse the complete verified identity and call auto without resolving it again; never send the full conversation to MCP. Follow the returned report state."
     },
     {
       "id": "company-name-stock-data",
@@ -275,7 +278,7 @@
       "prompt": "Research LSE-listed Rio Tinto plc and generate an English report.",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
       "expected_arguments": {
         "resolve_company_identity": {
@@ -283,14 +286,15 @@
           "exchange_hint": "LSE",
           "purpose": "company_report"
         },
-        "prepare_company_report_generation": {
+        "get_company_report": {
           "exchange": "LSE",
           "ticker": "RIO",
           "company_name": "Rio Tinto plc",
-          "output_locale": "en"
+          "output_locale": "en",
+          "mode": "auto"
         }
       },
-      "expected_behavior": "Verify the triplet with primary sources, accept identity_source=host_supplied and selected_sector=Others, and do not claim Mining Market Research verified it."
+      "expected_behavior": "Use auto after verifying the triplet. Present report_available faithfully; for generation_ready accept identity_source=host_supplied and selected_sector=Others, and do not claim Mining Market Research verified it."
     },
     {
       "id": "inactive-company-live-report",
@@ -298,9 +302,9 @@
       "prompt": "Research the historical ASX listing OLD and explain what happened to the company.",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
-      "expected_behavior": "Continue live research with Others and verify rename, acquisition, insolvency, suspension, and delisting status."
+      "expected_behavior": "Use auto. Present report_available with its original date; on generation_ready continue live research with Others and verify rename, acquisition, insolvency, suspension, and delisting status."
     },
     {
       "id": "mining-financial-quality",
@@ -308,9 +312,9 @@
       "prompt": "Research Bellevue Gold and analyze its liquidity and dilution risk.",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
-      "expected_behavior": "Section 5 covers dated cash, debt, net cash or debt, burn, runway, fully diluted shares, warrants, convertibles, funding gap, and 12-24 month financing risk."
+      "expected_behavior": "Use auto. Preserve the original structure and risk rating of report_available. For generation_ready, section 5 covers dated cash, debt, net cash or debt, burn, runway, fully diluted shares, warrants, convertibles, funding gap, and 12-24 month financing risk."
     },
     {
       "id": "mixed-company-and-market-analysis",
@@ -320,13 +324,13 @@
       "expected_skill": "company-report",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation",
+        "get_company_report",
         "get_available_exchanges",
         "get_latest_dates",
         "get_stock_schema",
         "screen_stocks"
       ],
-      "expected_behavior": "Complete live research first and separate it from canonical NASDAQ:AAPL market data."
+      "expected_behavior": "First present report_available faithfully or complete generation_ready live research, then separately present canonical NASDAQ:AAPL market data. Never add current prices or events inside the stored-report translation."
     },
     {
       "id": "csv-export",
@@ -381,7 +385,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Preserve the requested order, resolve each company separately, use dated live sources, write three or four prose sentences per company, and end with exactly one relevant semantic question."
     },
@@ -395,7 +400,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Use only the most recent explicitly referenced company set, preserve its order, and never scan the full conversation or add companies discovered during research."
     },
@@ -409,7 +415,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Research only Apple, NVIDIA, AMD, Intel, and TSMC in the current batch; list ASML, Broadcom, and Qualcomm as remaining; then ask exactly one continuation question and one semantic question about only the completed five.",
       "expected_output_contract": {
@@ -430,7 +437,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Honor explicit priority as AMD, Apple, then NVIDIA rather than ranking companies by perceived importance."
     },
@@ -444,7 +452,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Keep company_brief as the single primary task and treat current news as a brief component rather than reclassifying the request as news-only."
     },
@@ -458,7 +467,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Research the first five, omit the optional semantic question, and keep only the ASML continuation question required to finish the original request.",
       "expected_output_contract": {
@@ -480,7 +490,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Resolve all three identities, use short business context only to support a dimension-by-dimension comparison, and do not generate separate Briefs or seven-section reports."
     },
@@ -495,7 +506,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Do not apply the standalone introduction window to the comparison set; compare the full requested set or ask one focused scope question if the requested dimensions would be unreadable.",
       "expected_output_contract": {
@@ -521,7 +533,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Complete the ranked market screen and evidence filter first; keep the quantitative result set intact, then introduce only the first five ranked validated companies and preserve every remaining company for continuation.",
       "expected_output_contract": {
@@ -544,7 +557,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Compare all six resolved companies, but apply the shared five-company window only to the standalone introduction section and keep ASML in the continuation queue.",
       "expected_output_contract": {
@@ -568,7 +582,8 @@
       ],
       "forbidden_tools": [
         "screen_stocks",
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Reuse the prior discovered result set, server-side order, filters, and data_date; introduce positions six through ten without rerunning the market screen."
     },
@@ -587,7 +602,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Apply the same global introduction window and response finalization used through the coordinator, proving that direct specialist invocation cannot bypass the shared contract.",
       "expected_output_contract": {
@@ -610,7 +626,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Complete all three introductions and end without a continuation or semantic question.",
       "expected_output_contract": {
@@ -635,13 +652,33 @@
         "prepare_news_web_research"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_output_contract": {
         "corpus_before_web": true,
         "max_article_calls": 5,
         "requires_actual_web_evidence": true
       }
+    },
+    {
+      "id": "explicit-prepare-company-research",
+      "category": "direct",
+      "prompt": "Prepare fresh research for Apple using the preparation tool explicitly.",
+      "expected_primary_task": "full_report",
+      "expected_skill": "company-report",
+      "expected_tools": [
+        "prepare_company_report_generation"
+      ],
+      "expected_arguments": {
+        "prepare_company_report_generation": {
+          "exchange": "NASDAQ",
+          "ticker": "AAPL",
+          "company_name": "Apple Inc.",
+          "output_locale": "en"
+        }
+      },
+      "expected_behavior": "On ready execute host web research; do not save the report."
     }
   ],
   "negative": [
@@ -664,7 +701,8 @@
       "category": "negative",
       "prompt": "Get Apple's latest official 10-K filing.",
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Do not substitute a generated company report for an official filing."
     },
@@ -673,7 +711,8 @@
       "category": "negative",
       "prompt": "Show today's news only for AAPL.",
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Do not enter the full company-report workflow for a news-only request."
     },
@@ -686,7 +725,8 @@
       ],
       "forbidden_tools": [
         "prepare_company_report_generation",
-        "screen_stocks"
+        "screen_stocks",
+        "get_company_report"
       ],
       "expected_behavior": "Use candidates and primary sources, then ask which exchange only if ASX and NYSE remain possible."
     },
@@ -699,7 +739,8 @@
       ],
       "forbidden_tools": [
         "prepare_company_report_generation",
-        "screen_stocks"
+        "screen_stocks",
+        "get_company_report"
       ],
       "expected_behavior": "Do not silently choose GOOG or GOOGL; ask for the share class if context and primary sources do not decide it."
     },
@@ -714,14 +755,15 @@
         "screen_stocks",
         "run_readonly_sql"
       ],
-      "expected_behavior": "Explain that structured coverage is limited to ASX, CSE, NASDAQ, NYSE, TSX, and TSXV."
+      "expected_behavior": "Explain the unresolved identity using the service's actual supported exchanges; do not use a hard-coded market list or imply unsupported structured coverage."
     },
     {
       "id": "external-no-web-verification",
       "category": "negative",
       "prompt": "Research an external company, but do not use web search.",
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Do not rely on model memory or invent the exchange, ticker, or company name; request verifiable information or explain the limitation."
     },
@@ -731,7 +773,7 @@
       "prompt": "Generate an operating-company report for ASX:VAS.",
       "expected_tools": [
         "resolve_company_identity",
-        "prepare_company_report_generation"
+        "get_company_report"
       ],
       "expected_behavior": "Stop on not_eligible and explain that the Fund record is not an operating company; do not execute prompt_text."
     },
@@ -745,7 +787,7 @@
       "expected_behavior": "Reject the write request without attempting execution."
     },
     {
-      "id": "complete-row-table-no-pagination",
+      "id": "complete-row-table-cursor-pagination",
       "category": "negative",
       "prompt": "Give me every NYSE row and then fetch the next page after row 200.",
       "expected_tools": [
@@ -754,16 +796,16 @@
       "forbidden_tools": [
         "create_csv_export"
       ],
-      "expected_behavior": "Use the full matched range for analysis, show only rows 1-200, then honor the explicit next-page request by calling screen_stocks with only the opaque cursor and optional page_size when pagination_next_action allows it."
+      "expected_behavior": "Honor the requested continuation using the returned top-level page.next_cursor and optional page_size only. For a complete result request, accumulate necessary pages without per-page confirmation. Unknown totals are not zero. Check truncation and pagination limits before claiming completeness; report partial scope on a cap or failure without extra COUNT or market-completeness queries."
     },
     {
-      "id": "complete-partition-export-rejected",
+      "id": "complete-exchange-day-export-server-decision",
       "category": "negative",
       "prompt": "Download the complete NASDAQ table for one trading day as CSV.",
       "expected_tools": [
         "screen_stocks"
       ],
-      "expected_behavior": "Do not pre-apply legacy complete-partition restrictions when the bundled policy disables them. Export only when the actual rowset reports eligible_by_query=true and allows screen_stocks; otherwise preserve in-session analysis without bypassing the returned refusal."
+      "expected_behavior": "Do not inspect contains_complete_partition or impose complete-exchange-day restrictions in either bundled policy state. Use the original query_id immediately after an eligible first page, without fetching every page or requiring explicit fields. Eligibility with unknown totals is provisional. Show an actual export URL only on success; on a real refusal explain the limit and offer choices without silently changing scope."
     },
     {
       "id": "bulk-liquidity-provider-alternative",
@@ -807,7 +849,8 @@
         "resolve_company_identity"
       ],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Treat the contextual reference as the entity source and the cross-company comparison as the final deliverable; do not generate separate company briefs."
     },
@@ -818,7 +861,8 @@
       "expected_primary_task": "discovery",
       "expected_tools": [],
       "forbidden_tools": [
-        "prepare_company_report_generation"
+        "prepare_company_report_generation",
+        "get_company_report"
       ],
       "expected_behavior": "Return the requested discovery list without automatically expanding every company into a current three-to-four-sentence brief."
     },
@@ -831,7 +875,8 @@
       "expected_tools": [],
       "forbidden_tools": [
         "prepare_company_report_generation",
-        "screen_stocks"
+        "screen_stocks",
+        "get_company_report"
       ],
       "expected_behavior": "Ask one focused question about the desired final deliverable and do not guess a Brief, report, comparison, or market-data workflow."
     }

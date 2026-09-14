@@ -5,7 +5,7 @@ required before advertising a certified release. No generated host skill trees.
 
 ## One package, two native entries
 
-Both repository marketplaces select `plugins/anchises-analysis`. Its Codex and
+Both repository marketplaces select `plugins/mining-market-research`. Its Codex and
 Claude Code manifests load the same `skills/` and `.mcp.json`. Seven entries share
 canonical workflows and policies. Existing shared research documents remain in
 `skills/mining-market-research/references` and `workflows`; moving them merely to
@@ -80,8 +80,8 @@ separate live discovery and acceptance; mock OAuth tests are not certification.
 
 ```sh
 .venv/bin/python -m unittest discover -s tests -v
-python3 plugins/anchises-analysis/scripts/sync_plugin_release.py --platform all --check
-python3 plugins/anchises-analysis/contracts/sync_hosted_contract.py --check
+python3 plugins/mining-market-research/scripts/sync_plugin_release.py --platform all --check
+python3 plugins/mining-market-research/contracts/sync_hosted_contract.py --check
 ```
 
 The last command performs read-only live discovery. The unit suite's eight
@@ -125,7 +125,7 @@ Do not upload, publish, or tag automatically during local implementation.
 
 Claude's marketplace source moved from repository root to the shared package.
 Refresh its marketplace before upgrading and start a fresh session. For local
-testing use `claude --plugin-dir ./plugins/anchises-analysis`. Existing cached
+testing use `claude --plugin-dir ./plugins/mining-market-research`. Existing cached
 root-layout installs will not change until refreshed. Keep prior release refs
 available for rollback through the host's supported install workflow; do not
 delete user settings or credentials. Codex retains its existing package source.

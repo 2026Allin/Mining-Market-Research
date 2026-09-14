@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "name": "mining-market-research",
+  "platform": "codex",
+  "version": "0.6.0-dev.12",
+  "release_id": "codex.20260914025540",
+  "plugin_id": "mining-market-research@Anchises-Analysis",
+  "marketplace": "Anchises-Analysis",
+  "repository": "https://github.com/2026Allin/anchises-stock-qa.git",
+  "git_ref": "main",
+  "tag_prefix": "mining-market-research/codex/v"
+}

@@ -12,7 +12,7 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
+PLUGIN_ROOT = ROOT / "plugins" / "mining-market-research"
 SKILL_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research"
 REFERENCE_ROOT = SKILL_ROOT / "references"
 DIAGNOSTICS = REFERENCE_ROOT / "diagnostics.md"
@@ -93,10 +93,10 @@ class DiagnosticsRoutingTest(unittest.TestCase):
             "`mining_market_research:get_connection_status` exactly once with `{}`",
             "Do not call HTTP `/health`",
             "Run the service check and selected-platform plugin check independently",
-            "skip the cache-only probe",
-            "exactly one fixed-repository `git ls-remote`",
-            "`anchises-analysis/codex/v*`",
-            "`anchises-analysis/claude/v*`",
+            "Never use the old cache-only probe",
+            "No additional query, installer, or cross-session cache",
+            "`mining-market-research/codex/v*`",
+            "`mining-market-research/claude/v*`",
             "插件版本暂时无法确认",
             "Do not add an investment disclaimer",
         ):
@@ -183,12 +183,12 @@ class DiagnosticsResultContractTest(unittest.TestCase):
     def test_direct_remote_ingest_bypasses_a_cached_value_and_writes_new_cache(self) -> None:
         metadata = REFERENCE_ROOT / "plugin-release.json"
         main_commit = "a" * 40
-        target = "0.6.0-dev.12"
+        target = "0.6.0-dev.13"
         refs_with_update = "\n".join(
             (
                 f"{main_commit}\tHEAD",
                 f"{main_commit}\trefs/heads/main",
-                f"{main_commit}\trefs/tags/anchises-analysis/codex/v{target}",
+                f"{main_commit}\trefs/tags/mining-market-research/codex/v{target}",
                 "",
             )
         )
@@ -240,8 +240,8 @@ class DiagnosticsResultContractTest(unittest.TestCase):
         )
         self.assertEqual(codex["repository"], REPOSITORY)
         self.assertEqual(claude["repository"], REPOSITORY)
-        self.assertEqual(codex["tag_prefix"], "anchises-analysis/codex/v")
-        self.assertEqual(claude["tag_prefix"], "anchises-analysis/claude/v")
+        self.assertEqual(codex["tag_prefix"], "mining-market-research/codex/v")
+        self.assertEqual(claude["tag_prefix"], "mining-market-research/claude/v")
         self.assertEqual(codex["version"], claude["version"])
 
 

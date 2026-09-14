@@ -1,4 +1,0 @@
-interface:
-  display_name: "Mining Market Research News"
-  short_description: "Source-linked mining and company news research"
-  default_prompt: "Use $news-analysis to research recent gold mining news and cite the sources."

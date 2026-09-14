@@ -15,7 +15,7 @@ from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACTS = ROOT / "plugins" / "anchises-analysis" / "contracts"
+CONTRACTS = ROOT / "plugins" / "mining-market-research" / "contracts"
 TESTS = ROOT / "tests"
 if str(CONTRACTS) not in sys.path:
     sys.path.insert(0, str(CONTRACTS))
@@ -258,7 +258,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         tools = body["result"]["tools"]
-        self.assertEqual(len(tools), 17)
+        self.assertEqual(len(tools), 18)
         self.assertFalse(
             {"get_cached_company_report", "read_company_report"}
             & {tool["name"] for tool in tools}
@@ -594,7 +594,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
             self.assertNotEqual(refreshed["data"]["query_id"], original_query_id)
             self.assertEqual(refreshed["data"]["export_policy"]["mode"], "restricted")
 
-    def test_complete_partition_remains_analyzable_but_not_exportable(self) -> None:
+    def test_actual_row_limit_blocks_export_without_partition_check(self) -> None:
         status, body, _ = self._mcp_call(
             "screen_stocks",
             {
@@ -613,12 +613,10 @@ class MockHostedEndToEndTest(unittest.TestCase):
         )
         self.assertTrue(broad["data"]["analysis"]["server_side_analysis_supported"])
         self.assertFalse(broad["data"]["export_policy"]["eligible_by_query"])
-        self.assertTrue(
-            broad["data"]["export_policy"]["contains_complete_partition"]
-        )
+        self.assertNotIn("contains_complete_partition", broad["data"]["export_policy"])
         self.assertEqual(
             broad["data"]["export_policy"]["reasons"],
-            ["export_complete_partition_not_allowed"],
+            ["export_row_limit_exceeded"],
         )
         self.assertIsNotNone(broad["page"]["next_cursor"])
         self.assertEqual(
@@ -634,8 +632,60 @@ class MockHostedEndToEndTest(unittest.TestCase):
         self.assertTrue(body["result"]["isError"])
         self.assertEqual(
             body["result"]["structuredContent"]["error"]["code"],
-            "export_complete_partition_not_allowed",
+            "export_row_limit_exceeded",
         )
+
+    def test_unknown_total_continues_to_exhaustion_without_count_query(self) -> None:
+        self.services.set_data_policy_mode("bulk_enabled")
+        self.services.httpd.unknown_totals = True
+        _, body, _ = self._mcp_call("screen_stocks", {
+            "exchanges": ["ASX", "LSE"], "start_date": "2026-01-01",
+            "end_date": "2026-06-30", "fields": ["price_close"],
+            "filters": [{"field": "market_cap", "operator": "gt", "value": 1}],
+            "page_size": 200,
+        })
+        page = self._assert_success_schema("screen_stocks", body)
+        query_id = page["data"]["query_id"]
+        rows = []
+        for _ in range(10):
+            self.assertIsNone(page["data"]["analysis"]["matched_row_count"])
+            self.assertNotIn("contains_complete_partition", page["data"]["export_policy"])
+            rows.extend(page["data"]["rows"])
+            cursor = page["page"]["next_cursor"]
+            if cursor is None:
+                break
+            _, body, _ = self._mcp_call("screen_stocks", {"cursor": cursor, "page_size": 200})
+            page = self._assert_success_schema("screen_stocks", body)
+            self.assertEqual(page["data"]["query_id"], query_id)
+        self.assertEqual(len(rows), 1500)
+        self.assertFalse(page["page"]["truncated"])
+        self.assertFalse(page["data"]["analysis"]["pagination_limit_reached"])
+        self.assertTrue(all(c["name"] == "screen_stocks" for c in self.services.tool_calls))
+
+    def test_provisional_export_rejected_on_replay_without_preview_traversal(self) -> None:
+        self.services.httpd.unknown_totals = True
+        original = {"exchanges": ["ASX", "LSE"], "start_date": "2026-01-01",
+                    "end_date": "2026-06-30", "page_size": 200}
+        _, body, _ = self._mcp_call("screen_stocks", original)
+        first = self._assert_success_schema("screen_stocks", body)
+        self.assertIsNone(first["data"]["analysis"]["matched_row_count"])
+        self.assertTrue(first["data"]["export_policy"]["eligible_by_query"])
+        self.assertIsNotNone(first["page"]["next_cursor"])
+        query_id = first["data"]["query_id"]
+        _, body, _ = self._mcp_call("create_csv_export", {"query_id": query_id})
+        self.assertEqual(body["result"]["structuredContent"]["error"]["code"], "export_row_limit_exceeded")
+        self.assertEqual([c["name"] for c in self.services.tool_calls], ["screen_stocks", "create_csv_export"])
+        self.assertEqual(self.services.tool_calls[0]["arguments"], original)
+
+    def test_complete_exchange_day_and_omitted_fields_can_export(self) -> None:
+        self.services.set_data_policy_mode("bulk_enabled")
+        _, body, _ = self._mcp_call("screen_stocks", {"exchanges": ["ASX"], "as_of_date": "2026-07-17"})
+        first = self._assert_success_schema("screen_stocks", body)
+        self.assertNotIn("contains_complete_partition", first["data"]["export_policy"])
+        self.assertTrue(first["data"]["export_policy"]["eligible_by_query"])
+        _, body, _ = self._mcp_call("create_csv_export", {"query_id": first["data"]["query_id"]})
+        self._assert_success_schema("create_csv_export", body)
+        self.assertEqual(len(self.services.tool_calls), 2)
 
     def test_screen_runtime_rejects_invalid_range_top_n_and_legacy_cursor(self) -> None:
         cases = (
@@ -751,6 +801,30 @@ class MockHostedEndToEndTest(unittest.TestCase):
         self.assertEqual(external["status"], "not_found_in_supported_markets")
         self.assertIsNone(external["company"])
 
+    def test_report_auto_refresh_preserves_context_and_validates_three_states(self) -> None:
+        args = {"exchange": "NASDAQ", "ticker": "AAPL", "company_name": "Apple Inc.",
+                "output_locale": "zh-CN", "mode": "auto", "news_codes": [123456],
+                "research_focus": "Funding impact?"}
+        _, body, _ = self._mcp_call("get_company_report", args)
+        data = self._assert_success_schema("get_company_report", body)["data"]
+        self.assertEqual(data["status"], "report_available")
+        self.assertEqual(data["report"]["generated_at"], "2026-09-12T12:00:00Z")
+        self.assertTrue(data["presentation"]["translation_required"])
+        self.assertTrue(data["presentation"]["report_predates_linked_news"])
+        action = data["refresh_action"]
+        self.assertEqual(action["arguments"], {**args, "mode": "refresh"})
+        _, body, _ = self._mcp_call(action["tool_name"], action["arguments"])
+        fresh = self._assert_success_schema("get_company_report", body)["data"]
+        self.assertEqual(fresh["status"], "generation_ready")
+        self.assertEqual(fresh["persistence"], "none")
+        self.assertTrue(fresh["prompt_text"])
+        _, body, _ = self._mcp_call("get_company_report", {**args, "ticker": "RIO", "exchange": "LSE", "company_name": "Rio Tinto plc"})
+        self.assertEqual(self._assert_success_schema("get_company_report", body)["data"]["status"], "generation_ready")
+        _, body, _ = self._mcp_call("get_company_report", {"exchange": "ASX", "ticker": "VAS", "company_name": "Vanguard Australian Shares Index ETF", "output_locale": "en", "mode": "auto"})
+        ineligible = self._assert_success_schema("get_company_report", body)["data"]
+        self.assertEqual(ineligible["status"], "not_eligible")
+        self.assertIsNone(ineligible["prompt_text"])
+
     def test_positive_7_prepare_company_report_generation_states(self) -> None:
         status, body, _ = self._mcp_call(
             "prepare_company_report_generation",
@@ -772,7 +846,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
         )
         self.assertEqual(ready["identity_source"], "master")
         self.assertFalse(ready["listing_status_verification_required"])
-        self.assertEqual(ready["prompt_version"], "5.1")
+        self.assertEqual(ready["prompt_version"], "5.2")
         self.assertEqual(ready["next_action"], "run_host_web_research")
         self.assertIn("Output locale: zh-CN", ready["prompt_text"])
         self.assertIn("**Summary:**", ready["prompt_text"])
@@ -933,7 +1007,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
                 refreshed["source"]["instructions"],
                 self.contract["source"]["instructions"],
             )
-            self.assertEqual(len(refreshed["tools"]), 17)
+            self.assertEqual(len(refreshed["tools"]), 18)
 
             status, body, headers = _request(
                 f"{services.base_url}/mcp",
@@ -959,7 +1033,7 @@ class MockHostedEndToEndTest(unittest.TestCase):
                 payload={"jsonrpc": "2.0", "id": 21, "method": "tools/list", "params": {}},
             )
             self.assertEqual(status, 200)
-            self.assertEqual(len(listed["result"]["tools"]), 17)
+            self.assertEqual(len(listed["result"]["tools"]), 18)
             for descriptor in listed["result"]["tools"]:
                 self.assertEqual(descriptor["securitySchemes"], [{"type": "noauth"}])
 

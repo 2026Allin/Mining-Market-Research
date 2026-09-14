@@ -12,7 +12,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACTS = ROOT / "plugins" / "anchises-analysis" / "contracts"
+CONTRACTS = ROOT / "plugins" / "mining-market-research" / "contracts"
 if str(CONTRACTS) not in sys.path:
     sys.path.insert(0, str(CONTRACTS))
 
@@ -47,7 +47,7 @@ class LiveHostedContractTest(unittest.TestCase):
                 "protocolVersion": "2025-06-18",
                 "capabilities": {},
                 "clientInfo": {
-                    "name": f"anchises-analysis-{label}",
+                    "name": f"mining-market-research-{label}",
                     "version": TEST_CLIENT_VERSION,
                 },
             },
@@ -77,11 +77,38 @@ class LiveHostedContractTest(unittest.TestCase):
         ).validate(structured)
         return structured
 
+    def test_report_selection_auto_and_refresh(self) -> None:
+        """Direct MCP smoke run from Codex; not native tool-selection certification."""
+        client, _ = self._client("codex-report-selection")
+        listed = client.call("tools/list", {}, 2)
+        self.assertIn("get_company_report", {t["name"] for t in listed["tools"]})
+        args = {"exchange": "ASX", "ticker": "BHP", "company_name": "BHP Group",
+                "output_locale": "zh-CN", "mode": "auto"}
+        auto = self._tool_call(client, 3, "get_company_report", args)["data"]
+        self.assertIn(auto["status"], {"report_available", "generation_ready"})
+        if auto["status"] == "report_available":
+            self.assertEqual(auto["report"]["language"], "en")
+            self.assertTrue(auto["report"]["generated_at"])
+            action = auto["refresh_action"]
+            self.assertEqual(action["tool_name"], "get_company_report")
+            self.assertEqual(action["arguments"]["mode"], "refresh")
+            for field in ("exchange", "ticker", "output_locale"):
+                self.assertEqual(action["arguments"][field], args[field])
+        refreshed = self._tool_call(client, 4, "get_company_report", {**args, "mode": "refresh"})["data"]
+        self.assertEqual(refreshed["status"], "generation_ready")
+        self.assertEqual(refreshed["persistence"], "none")
+        self.assertTrue(refreshed["prompt_text"])
+        # Never print/persist report content or execute returned research in a smoke test.
+        print(json.dumps({"test": "codex_direct_mcp_report_smoke",
+                          "auto_status": auto["status"],
+                          "refresh_status": refreshed["status"],
+                          "native_codex_tool_selection_tested": False}))
+
     def test_health_and_handshake_publish_matching_semantic_versions(self) -> None:
         request = Request(
             HEALTH,
             headers={
-                "User-Agent": f"anchises-analysis-live-health/{TEST_CLIENT_VERSION}"
+                "User-Agent": f"mining-market-research-live-health/{TEST_CLIENT_VERSION}"
             },
         )
         with urlopen(request, timeout=20) as response:
@@ -112,7 +139,7 @@ class LiveHostedContractTest(unittest.TestCase):
             expected_mode="public_noauth",
         )
         self.assertTrue(contracts_match(self.contract, live))
-        self.assertEqual(len(live["tools"]), 17)
+        self.assertEqual(len(live["tools"]), 18)
         names = [tool["name"] for tool in live["tools"]]
         self.assertIn("resolve_company_identity", names)
         self.assertFalse(
@@ -271,7 +298,7 @@ class LiveHostedContractTest(unittest.TestCase):
         download = Request(
             export["data"]["download_url"],
             headers={
-                "User-Agent": f"anchises-analysis-live-csv/{TEST_CLIENT_VERSION}"
+                "User-Agent": f"mining-market-research-live-csv/{TEST_CLIENT_VERSION}"
             },
         )
         with urlopen(download, timeout=30) as response:
@@ -306,9 +333,7 @@ class LiveHostedContractTest(unittest.TestCase):
         )
         self.assertEqual(broad["data"]["analysis"]["displayed_row_start"], 1)
         self.assertEqual(broad["data"]["analysis"]["displayed_row_end"], 1)
-        self.assertTrue(
-            broad["data"]["export_policy"]["contains_complete_partition"]
-        )
+        self.assertNotIn("contains_complete_partition", broad["data"]["export_policy"])
         continued = self._tool_call(
             client,
             request_id + 2,

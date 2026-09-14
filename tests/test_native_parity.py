@@ -8,7 +8,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "plugins/anchises-analysis"
+PLUGIN = ROOT / "plugins/mining-market-research"
 sys.path.insert(0, str(PLUGIN / "contracts"))
 from capability_contract import compatibility_changes, load_capabilities, required_tools
 from hosted_contract import load_contract
@@ -20,8 +20,10 @@ class NativeParityTest(unittest.TestCase):
         for name in ('search_news', 'prepare_news_web_research'):
             self.assertEqual(tools[name]['inputSchema']['properties']['exchanges']['maxItems'], 100)
         workflow = (PLUGIN / 'skills/mining-market-research/workflows/news-analysis.md').read_text()
-        self.assertIn('outside the access option reject the query', workflow)
-        self.assertIn('Do not drop', workflow)
+        self.assertIn('../references/news-retrieval.md', workflow)
+        retrieval = (PLUGIN / 'skills/mining-market-research/references/news-retrieval.md').read_text()
+        self.assertIn('outside the access option reject the query', retrieval)
+        self.assertIn('Do not drop', retrieval)
 
     def setUp(self):
         self.contract = load_contract()

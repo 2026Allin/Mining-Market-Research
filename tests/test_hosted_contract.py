@@ -12,7 +12,7 @@ from jsonschema import Draft202012Validator
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
+PLUGIN_ROOT = ROOT / "plugins" / "mining-market-research"
 CONTRACTS = PLUGIN_ROOT / "contracts"
 if str(CONTRACTS) not in sys.path:
     sys.path.insert(0, str(CONTRACTS))
@@ -45,6 +45,7 @@ EXPECTED_TOOLS = [
     "validate_readonly_sql",
     "run_readonly_sql",
     "resolve_company_identity",
+    "get_company_report",
     "prepare_company_report_generation",
     "list_news_filters",
     "search_news",
@@ -123,8 +124,8 @@ class HostedContractTest(unittest.TestCase):
         self.assertIn("User-authored SQL OFFSET remains forbidden", source["instructions"])
         self.assertIn("active server data policy", source["instructions"])
         self.assertIn("resolve a company name or ticker", source["instructions"])
-        self.assertIn("Company-report requests always use", source["instructions"])
-        self.assertIn("host must perform live web research", source["instructions"])
+        self.assertIn("For company reports use get_company_report in auto mode first", source["instructions"])
+        self.assertIn("perform live web research immediately", source["instructions"])
         self.assertIn("Connection status reports only service access", source["instructions"])
         self.assertEqual(source["sync_state"], "live")
         self.assertRegex(source["descriptor_sha256"], r"^[0-9a-f]{64}$")
@@ -139,7 +140,7 @@ class HostedContractTest(unittest.TestCase):
 
     def test_tool_names_order_and_error_codes_are_stable(self) -> None:
         self.assertEqual([item["name"] for item in self.descriptors], EXPECTED_TOOLS)
-        self.assertEqual(len(self.descriptors), 17)
+        self.assertEqual(len(self.descriptors), 18)
         self.assertEqual(
             set(self.contract["errors"]),
             {
@@ -260,6 +261,7 @@ class HostedContractTest(unittest.TestCase):
         self.assertEqual(
             set(properties),
             {
+                "instruments",
                 "exchanges",
                 "as_of_date",
                 "start_date",
@@ -521,7 +523,7 @@ class HostedContractTest(unittest.TestCase):
             ["ready", "not_eligible"],
         )
         self.assertEqual(data["prompt_text"]["maxLength"], 25_000)
-        self.assertEqual(data["prompt_version"]["enum"], ["5.1", None])
+        self.assertEqual(data["prompt_version"]["enum"], ["5.2", None])
         self.assertEqual(
             data["identity_source"]["enum"],
             ["master", "host_supplied"],

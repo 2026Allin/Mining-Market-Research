@@ -11,14 +11,14 @@ import uuid
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / 'plugins/anchises-analysis/skills/mining-market-research/scripts'
+SCRIPTS = ROOT / 'plugins/mining-market-research/skills/mining-market-research/scripts'
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(SCRIPTS))
 import update_state as updates
 
 LOADED = '0.6.0-dev.11+codex.20260911103514'
 NEW = '0.6.0-dev.12+codex.20260912000000'
-RELEASE = dict(version='0.6.0-dev.12', tag='anchises-analysis/codex/v0.6.0-dev.12',
+RELEASE = dict(version='0.6.0-dev.12', tag='mining-market-research/codex/v0.6.0-dev.12',
                commit='a' * 40, install_source_matches=True)
 
 
@@ -59,8 +59,10 @@ class UpdateStateTest(unittest.TestCase):
         self.assertEqual(updates.chat_notice(store, now=101, loaded_release=loaded)['action'], 'silent')
 
     def test_chat_cli_never_calls_native_inventory(self):
-        args = ['update_state.py', 'probe', '--platform', 'claude', '--surface', 'claude-chat',
-                '--session-id', uuid.uuid4().hex, '--loaded-release', '0.6.0-dev.11+claude.20260911100753']
+        with patch.object(updates.tempfile, 'gettempdir', return_value=self.temp.name):
+            meta = updates.checker._load_metadata(updates.checker.metadata_path_for_platform('claude'))
+            context = updates.initialize_chat(meta)
+        args = ['update_state.py', 'probe', '--context-file', context['context_file']]
         with patch.object(sys, 'argv', args), patch.object(updates.tempfile, 'gettempdir', return_value=self.temp.name), \
                 patch.object(updates, 'installed_identity', side_effect=AssertionError('native call')), \
                 patch.object(sys, 'stdout', new_callable=io.StringIO) as stdout:
@@ -164,14 +166,18 @@ class UpdateStateTest(unittest.TestCase):
         self.assertEqual(updates.probe(self.store, now=99)['action'], 'check_required')
 
     def test_profiles_scopes_channels_and_hosts_are_separate(self):
-        original = updates.scope_key(self.metadata)
-        self.assertNotEqual(original, updates.scope_key(self.metadata, 'project:/tmp/test'))
-        stable = {**self.metadata, 'version': '0.6.0'}
-        self.assertNotEqual(original, updates.scope_key(stable))
-        with patch.dict(os.environ, {'CODEX_HOME': '/tmp/other-profile'}):
-            self.assertNotEqual(original, updates.scope_key(self.metadata))
-        other = updates.checker._load_metadata(updates.checker.metadata_path_for_platform('claude'))
-        self.assertNotEqual(original, updates.scope_key(other))
+        with patch.object(updates.tempfile, 'gettempdir', return_value=self.temp.name):
+            for platform in ('codex', 'claude'):
+                meta = updates.checker._load_metadata(updates.checker.metadata_path_for_platform(platform))
+                first = updates.initialize_session(meta)
+                other = updates.initialize_session(meta)
+                self.assertNotEqual(first['context_file'], other['context_file'])
+                store = updates.session_context(meta, first['session_id'], first['loaded_release'])
+                ticket = updates.probe(store, now=100)['ticket']
+                updates.record(store, ticket, now=100, release=RELEASE)
+                self.assertEqual(updates.probe(store, now=101)['action'], 'cached')
+                separate = updates.session_context(meta, other['session_id'], other['loaded_release'])
+                self.assertEqual(updates.probe(separate, now=101)['action'], 'check_required')
 
     def test_tag_discovery_survives_main_advancing_but_marks_unsafe_install(self):
         refs = f"{'b'*40}\trefs/heads/main\n{'a'*40}\trefs/tags/{RELEASE['tag']}\n"
@@ -198,7 +204,7 @@ class UpdateStateTest(unittest.TestCase):
             updates.probe(updates.StateStore(link, 'test'), now=100)
 
     def test_upgrade_wrapper_is_shared_and_requires_restart(self):
-        plugin = ROOT / 'plugins/anchises-analysis'
+        plugin = ROOT / 'plugins/mining-market-research'
         for host in ('codex', 'claude'):
             manifest = json.loads((plugin / f'.{host}-plugin/plugin.json').read_text())
             self.assertEqual(manifest['skills'], './skills/')

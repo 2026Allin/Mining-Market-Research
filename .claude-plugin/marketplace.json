@@ -8,9 +8,9 @@
   "description": "Anchises Capital plugins for public-company and market analysis.",
   "plugins": [
     {
-      "name": "anchises-analysis",
+      "name": "mining-market-research",
       "displayName": "Mining Market Research",
-      "source": "./plugins/anchises-analysis",
+      "source": "./plugins/mining-market-research",
       "description": "Research public companies with live web sources and analyze stock-market data.",
       "category": "productivity"
     }

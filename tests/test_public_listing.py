@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
+PLUGIN_ROOT = ROOT / "plugins" / "mining-market-research"
 MANIFEST = PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
 LISTING = ROOT / "docs" / "anchises-analysis-plugin-directory-listing.md"
 AVAILABILITY = (

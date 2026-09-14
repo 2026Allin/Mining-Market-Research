@@ -17,7 +17,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACTS = ROOT / "plugins" / "anchises-analysis" / "contracts"
+CONTRACTS = ROOT / "plugins" / "mining-market-research" / "contracts"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "mock_backend_data.json"
 
 import sys
@@ -425,7 +425,7 @@ class MockServiceHandler(BaseHTTPRequestHandler):
             "max_top_n": 200,
             "max_explicit_tickers": 50,
             "max_partitions": 1000,
-            "complete_exchange_day_allowed": False,
+            "complete_exchange_day_allowed": True,
             "sql_export_allowed": False,
         }
 
@@ -480,7 +480,6 @@ class MockServiceHandler(BaseHTTPRequestHandler):
         mode: str,
         eligible: bool,
         classification: str,
-        contains_complete_partition: bool | None,
         reasons: list[str],
     ) -> Dict[str, Any]:
         return {
@@ -488,7 +487,6 @@ class MockServiceHandler(BaseHTTPRequestHandler):
             "policy_version": "stock-data-access-v2",
             "eligible_by_query": eligible,
             "classification": classification,
-            "contains_complete_partition": contains_complete_partition,
             "reasons": reasons,
             "source_tools_allowed": (
                 ["screen_stocks", "run_readonly_sql"]
@@ -574,13 +572,14 @@ class MockServiceHandler(BaseHTTPRequestHandler):
         page_end = min(offset + page_size, len(query["rows"]), browsable_limit)
         page_rows = query["rows"][offset:page_end]
         analysis = self._analysis(
-            query["matched"],
+            len(query["rows"]),
             len(page_rows),
             query["classification"],
             offset=offset,
             browsable_limit=browsable_limit,
         )
         next_cursor = None
+        analysis["matched_row_count"] = query["matched"]
         if analysis["pagination_next_action"] == "call_same_tool_with_cursor":
             next_cursor = self._encode_cursor(
                 query["query_id"],
@@ -749,7 +748,8 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                 if item.get("operator") == "between" and len(item.get("value", [])) != 2:
                     return "query_rejected", "between requires exactly two ordered values."
 
-            ticker_count = 0
+            instruments = arguments.get("instruments", [])
+            ticker_count = len(instruments)
             for item in filters:
                 if str(item.get("field", "")).casefold() != "ticker":
                     continue
@@ -781,40 +781,33 @@ class MockServiceHandler(BaseHTTPRequestHandler):
             query_id = self._query_id("screen_stocks")
 
             exchanges = arguments.get("exchanges") or []
-            contains_complete_partition = bool(
-                len(exchanges) == 1
-                and as_of_date
-                and not filters
-                and top_n is None
-            )
             fields = arguments.get("fields") or []
             total_columns = len(fields) + 3
             reasons: list[str] = []
             limits = self._policy_limits(self.data_policy_mode)
             if self.data_policy_mode == "restricted":
-                if contains_complete_partition:
-                    reasons.append("export_complete_partition_not_allowed")
-                elif classification == "broad_preview" or not fields:
-                    reasons.append("export_requires_selective_query")
-                elif ticker_count > int(limits["max_explicit_tickers"]):
+                if ticker_count > int(limits["max_explicit_tickers"]):
                     reasons.append("export_ticker_limit_exceeded")
             if not reasons and total_columns > int(limits["max_columns"]):
                 reasons.append("export_column_limit_exceeded")
-            if not reasons and matched > int(limits["max_rows"]):
+            unknown_total = self.server.unknown_totals  # type: ignore[attr-defined]
+            if not reasons and not unknown_total and matched > int(limits["max_rows"]):
                 reasons.append("export_row_limit_exceeded")
-            if not reasons and matched * total_columns > int(limits["max_cells"]):
+            if not reasons and not unknown_total and matched * total_columns > int(limits["max_cells"]):
                 reasons.append("export_cell_limit_exceeded")
             eligible = not reasons
             policy = self._export_policy(
                 mode=self.data_policy_mode,
                 eligible=eligible,
                 classification=classification,
-                contains_complete_partition=contains_complete_partition,
                 reasons=reasons,
             )
             self.server.query_policies[query_id] = policy  # type: ignore[attr-defined]
 
             source_rows = self._repeat_rows(self.fixture["screen_rows"], matched)
+            if instruments:
+                for row, instrument in zip(source_rows, instruments):
+                    row.update(exchange=instrument["exchange"], ticker=instrument["ticker"])
             automatic_fields = ["exchange", "date", "ticker"]
             selected_fields = fields or [
                 key for key in source_rows[0] if key not in automatic_fields
@@ -829,7 +822,7 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                 "source_tool": "screen_stocks",
                 "rows": projected_rows,
                 "columns": columns,
-                "matched": matched,
+                "matched": None if unknown_total else matched,
                 "classification": classification,
                 "policy": policy,
                 "epoch": self.server.policy_epoch,  # type: ignore[attr-defined]
@@ -902,7 +895,6 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                 mode=self.data_policy_mode,
                 eligible=not reasons,
                 classification="sql_analysis",
-                contains_complete_partition=None,
                 reasons=reasons,
             )
             self.server.query_policies[query_id] = policy  # type: ignore[attr-defined]
@@ -994,6 +986,44 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                     "message": message,
                 }
             )
+        if name == "get_company_report":
+            prepared = self._tool_response("prepare_company_report_generation", arguments, token)
+            if isinstance(prepared, tuple):
+                return prepared
+            data = prepared["data"]
+            if data["status"] == "not_eligible":
+                return prepared
+            # Fixture selection represents server policy, never host expiry logic.
+            if arguments.get("mode", "auto") == "auto" and arguments["ticker"] == "AAPL":
+                company = data["company"]
+                prepared["data"] = {
+                    "status": "report_available",
+                    "company": company,
+                    "report": {
+                        "exchange": company["exchange"], "ticker": company["ticker"],
+                        "company_name": company["company_name"], "language": "en",
+                        "generated_at": "2026-09-12T12:00:00Z",
+                        "summary": "Fixture research, cash US$100 million.",
+                        "sections": [{"order": 1, "title": "Risk", "body": "Funding risk."}],
+                        "citations": [{"title": "Fixture source", "url": "https://example.com/report"}],
+                        "risk_level": "High",
+                    },
+                    "presentation": {
+                        "output_locale": arguments["output_locale"],
+                        "translation_required": arguments["output_locale"] != "en",
+                        "preserve_original_generated_at": True,
+                        "label_as_new_research": False, "ask_to_refresh": True,
+                        "report_predates_linked_news": bool(arguments.get("news_codes")),
+                        "instructions": "Translate faithfully and ask whether to refresh.",
+                    },
+                    "refresh_action": {"tool_name": "get_company_report",
+                                       "arguments": {**arguments, "mode": "refresh"}},
+                    "next_action": "present_existing_report",
+                }
+            else:
+                data.update(status="generation_ready", persistence="none",
+                            output_locale=arguments["output_locale"])
+            return prepared
         if name == "prepare_company_report_generation":
             exchange = str(arguments.get("exchange", "")).upper()
             ticker = str(arguments.get("ticker", "")).upper()
@@ -1090,7 +1120,7 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                     "listing_status_verification_required": listing_verification,
                     "selected_sector": selected_sector,
                     "prompt_id": prompt_id,
-                    "prompt_version": "5.1",
+                    "prompt_version": "5.2",
                     "prompt_text": prompt_text,
                     "next_action": "run_host_web_research",
                 }
@@ -1118,6 +1148,19 @@ class MockServiceHandler(BaseHTTPRequestHandler):
                     else "export_requires_selective_query"
                 )
                 return code, "The result is still available for analysis but is not an exportable research subset."
+            # Export replay is authoritative even when preview eligibility was
+            # provisional. This is mock server behavior, not a client precheck.
+            if query is not None:
+                limits = policy["limits"]
+                row_count, column_count = len(query["rows"]), len(query["columns"])
+                for exceeds, code in (
+                    (row_count > limits["max_rows"], "export_row_limit_exceeded"),
+                    (column_count > limits["max_columns"], "export_column_limit_exceeded"),
+                    (row_count * column_count > limits["max_cells"], "export_cell_limit_exceeded"),
+                    (len(json.dumps(query["rows"]).encode()) > limits["max_bytes"], "result_too_large"),
+                ):
+                    if exceeds:
+                        return code, "Export replay exceeds the actual resource limit."
             expires_in_seconds = arguments.get("expires_in_seconds", 3600)
             self.server.last_export_query_id = query_id  # type: ignore[attr-defined]
             expires_at = datetime(
@@ -1182,6 +1225,7 @@ class MockAnchisesAnalysisServices(AbstractContextManager["MockAnchisesAnalysisS
         self.httpd.policy_epoch = 1  # type: ignore[attr-defined]
         self.httpd.cursor_secret = b"mock-cursor-secret"  # type: ignore[attr-defined]
         self.httpd.query_counter = 0  # type: ignore[attr-defined]
+        self.httpd.unknown_totals = False  # type: ignore[attr-defined]
         self.httpd.queries = {}  # type: ignore[attr-defined]
         self.httpd.tool_calls = []  # type: ignore[attr-defined]
         self.httpd.last_export_query_id = None  # type: ignore[attr-defined]
@@ -1191,7 +1235,6 @@ class MockAnchisesAnalysisServices(AbstractContextManager["MockAnchisesAnalysisS
                 mode=data_policy_mode,
                 eligible=True,
                 classification="filtered",
-                contains_complete_partition=False,
                 reasons=[],
             )
         }

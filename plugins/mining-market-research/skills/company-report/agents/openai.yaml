@@ -1,0 +1,7 @@
+interface:
+  display_name: "Mining Market Research — Company Report"
+  short_description: "View company reports or run fresh source-linked research."
+  default_prompt: "Use $company-report to show me the company research report for NVIDIA in my language."
+
+policy:
+  allow_implicit_invocation: true

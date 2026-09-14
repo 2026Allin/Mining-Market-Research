@@ -3,39 +3,105 @@
     {
       "id": "positive-public-access-and-exchanges",
       "prompt": "Check whether Mining Market Research public access is available, list the supported exchanges, and summarize the shared limits.",
-      "expected_workflow": ["get_connection_status", "get_available_exchanges"],
-      "expected_shape": ["status=active", "authentication=not_required", "coverage", "limits", "data.exchanges"],
+      "expected_workflow": [
+        "get_connection_status",
+        "get_available_exchanges"
+      ],
+      "expected_shape": [
+        "status=active",
+        "authentication=not_required",
+        "coverage",
+        "limits",
+        "data.exchanges"
+      ],
       "fixture_data": "Use the public production MCP endpoint. No account or credentials are required. Validate the response shape and the six supported stock-data markets."
     },
     {
       "id": "positive-company-name-stock-data",
       "prompt": "Show Apple's latest structured price, 30-day return, and data date.",
-      "expected_workflow": ["resolve_company_identity", "get_available_exchanges", "get_latest_dates", "get_stock_schema", "screen_stocks"],
-      "expected_shape": ["status=resolved", "NASDAQ", "AAPL", "Apple Inc.", "data date", "structured row"],
+      "expected_workflow": [
+        "resolve_company_identity",
+        "get_available_exchanges",
+        "get_latest_dates",
+        "get_stock_schema",
+        "screen_stocks"
+      ],
+      "expected_shape": [
+        "status=resolved",
+        "NASDAQ",
+        "AAPL",
+        "Apple Inc.",
+        "data date",
+        "structured row"
+      ],
       "fixture_data": "Resolve Apple before requesting stock data and use the canonical NASDAQ:AAPL identity."
     },
     {
       "id": "positive-live-company-report",
-      "prompt": "Research Apple and generate a current Simplified Chinese company report with primary-source links.",
-      "expected_workflow": ["resolve_company_identity", "prepare_company_report_generation", "Host live web research"],
-      "expected_arguments": {"prepare_company_report_generation": {"exchange": "NASDAQ", "ticker": "AAPL", "company_name": "Apple Inc.", "output_locale": "zh-CN"}},
-      "expected_shape": ["status=ready", "prompt_version=5.1", "next_action=run_host_web_research", "Summary", "seven English headings", "English Risk label", "source links"],
-      "fixture_data": "The Host must execute the hidden prompt with live web search and return the report itself in the current conversation."
+      "prompt": "Show Apple's company research report in Simplified Chinese with source links.",
+      "expected_workflow": [
+        "resolve_company_identity",
+        "get_company_report",
+        "Branch on MCP report status"
+      ],
+      "expected_arguments": {
+        "get_company_report": {
+          "exchange": "NASDAQ",
+          "ticker": "AAPL",
+          "company_name": "Apple Inc.",
+          "output_locale": "zh-CN",
+          "mode": "auto"
+        }
+      },
+      "expected_shape": [
+        "report_available or generation_ready or not_eligible",
+        "existing report: original generation date and faithful translation",
+        "new research: Summary, seven English headings and English Risk label",
+        "source links"
+      ],
+      "fixture_data": "On report_available present the original date and faithful translation, and ask once whether to refresh. Only generation_ready executes live research. not_eligible stops. No saving or uploading."
     },
     {
       "id": "positive-external-company-report",
       "prompt": "Research LSE-listed Rio Tinto plc and generate a current English company report.",
-      "expected_workflow": ["resolve_company_identity", "primary-source identity verification", "prepare_company_report_generation", "Host live web research"],
-      "expected_arguments": {"prepare_company_report_generation": {"exchange": "LSE", "ticker": "RIO", "company_name": "Rio Tinto plc", "output_locale": "en"}},
-      "expected_shape": ["not_found_in_supported_markets", "identity_source=host_supplied", "listing_status_verification_required=true", "selected_sector=Others", "source-linked report"],
-      "fixture_data": "An external-market report is allowed after all three identity fields are verified with primary public sources."
+      "expected_workflow": [
+        "resolve_company_identity",
+        "primary-source identity verification",
+        "get_company_report",
+        "Branch on MCP report status"
+      ],
+      "expected_arguments": {
+        "get_company_report": {
+          "exchange": "LSE",
+          "ticker": "RIO",
+          "company_name": "Rio Tinto plc",
+          "output_locale": "en",
+          "mode": "auto"
+        }
+      },
+      "expected_shape": [
+        "not_found_in_supported_markets",
+        "generation_ready may use identity_source=host_supplied",
+        "verify listing when listing_status_verification_required=true",
+        "generation_ready may use selected_sector=Others",
+        "source-linked report"
+      ],
+      "fixture_data": "An external-market report is allowed after all three identity fields are verified with primary public sources. In auto, an existing report must be faithfully presented rather than always performing new research."
     },
     {
       "id": "positive-csv-export",
       "prompt": "Export the immediately preceding Apple stock screen as CSV using only the displayed research fields and the default expiration.",
-      "expected_workflow": ["create_csv_export"],
-      "expected_shape": ["export_policy.eligible_by_query=true", "download_url", "expires_at", "bytes", "default lifetime of 60 minutes"],
-      "fixture_data": "Use the real query_id from the preceding selective screen, never a SQL query_id, and omit expires_in_seconds so the default 60-minute lifetime applies."
+      "expected_workflow": [
+        "create_csv_export"
+      ],
+      "expected_shape": [
+        "export_policy.eligible_by_query=true",
+        "download_url",
+        "expires_at",
+        "bytes",
+        "default lifetime of 60 minutes"
+      ],
+      "fixture_data": "Use the real query_id from the preceding query when its export policy permits that source tool. Do not require complete preview traversal or explicit fields. Omit expires_in_seconds so the default 60-minute lifetime applies, and judge success from the actual export response."
     }
   ],
   "negative": [

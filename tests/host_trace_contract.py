@@ -10,6 +10,8 @@ def validate_trace(trace, contract):
     tools = {t["name"]: t for t in contract["tools"]}
     errors, seen = [], []
     articles, validated_sql, exportable = set(), set(), set()
+    cursors, last_rowset = {}, None
+    export_succeeded = False
     article_calls = 0
     for event in trace["calls"]:
         name, args = event["tool"], event.get("arguments", {})
@@ -32,24 +34,48 @@ def validate_trace(trace, contract):
             errors.append("export requires user request and eligible current query")
         # Normalized evidence is extracted from the actual host tool responses.
         result = event.get("evidence", {})
+        if name in {"screen_stocks", "run_readonly_sql"} and "cursor" in args:
+            size = "page_size" if name == "screen_stocks" else "max_rows"
+            if set(args) - {"cursor", size}:
+                errors.append("continuation must not resend query arguments")
+            if args["cursor"] != cursors.get(name):
+                errors.append("continuation requires the preceding same-tool cursor")
+        if event.get("purpose") == "completeness_audit":
+            errors.append("no unsolicited database completeness audit")
+        if name == "create_csv_export" and result.get("download_url"):
+            export_succeeded = True
         if name == "search_news":
             articles.update(result.get("news_codes", []))
         if name == "validate_readonly_sql" and result.get("valid") is True:
             validated_sql.add(args["sql"])
         if name in {"screen_stocks", "run_readonly_sql"}:
+            cursors[name] = result.get("page", {}).get("next_cursor")
+            if "page" in result:
+                last_rowset = result
             policy = result.get("export_policy", {})
             if policy.get("eligible_by_query") is True and name in policy.get("source_tools_allowed", []):
                 query_id = result.get("query_id")
                 if query_id:
                     exportable.add(query_id)
         seen.append(name)
+    if last_rowset:
+        page, analysis = last_rowset["page"], last_rowset.get("analysis", {})
+        incomplete = bool(page.get("next_cursor") or page.get("truncated")
+                          or analysis.get("pagination_limit_reached"))
+        if trace.get("claims_complete") and incomplete:
+            errors.append("cannot claim complete analysis of a partial query")
+        if (trace.get("claimed_total") is not None and incomplete
+                and analysis.get("matched_row_count") is None):
+            errors.append("unknown total must not be replaced by displayed rows")
+    if trace.get("claims_export_success") and not export_succeeded:
+        errors.append("export eligibility is not export success")
     if article_calls > 5:
         errors.append("at most five article calls per user request")
     if seen.count("get_connection_status") > 1:
         errors.append("duplicate service check")
     if trace.get("task") == "news" and "search_news" not in seen and not trace.get("service_unavailable"):
         errors.append("news task requires corpus search")
-    if trace.get("historical") and "get_available_dates" not in seen and not trace.get("service_unavailable"):
+    if trace.get("trading_date_selection") and "get_available_dates" not in seen and not trace.get("service_unavailable"):
         errors.append("historical task requires date discovery")
     if trace.get("task") not in {"diagnostics", "plugin_update", "upgrade"} and trace.get("release_check"):
         if trace.get("update_probe_action") != "check_required":

@@ -1,12 +1,17 @@
 # Mining Market Research Marketplace
 
-<img src="plugins/anchises-analysis/assets/logo.png" alt="Mining Market Research logo" width="96">
+<img src="plugins/mining-market-research/assets/logo.png" alt="Mining Market Research logo" width="96">
 
 This repository contains the Codex `Anchises-Analysis` Marketplace, the Claude
-`anchises-capital` Marketplace, and one shared `anchises-analysis` plugin
+`anchises-capital` Marketplace, and one shared `mining-market-research` plugin
 package published by Anchises Capital. Both native hosts expose the same seven
 Skills and connect directly to `https://mcp.anchisesdata.com/mcp`.
 No generated platform copies or workspace-specific App ID are required.
+
+The source now uses a new plugin installation identity. See the
+[identity migration guide](docs/plugin-brand-migration.md) before replacing an
+existing installation. This rename is included in the dev.12 prerelease; existing sessions
+and published builds keep their original identity.
 
 Development preview: `0.6.0-dev.11`. The submitted public-review
 release remains `0.4.0-beta.2`; this preview is not a certified stable release.
@@ -14,11 +19,11 @@ See [preview release notes](docs/mining-market-research-0.6.0-dev.11-release-not
 
 ## Development preview changes
 
-- Both marketplaces select `plugins/anchises-analysis`, a self-contained
+- Both marketplaces select `plugins/mining-market-research`, a self-contained
   package with Codex and Claude Code native manifests.
 - Seven shared entries: coordinator, Company Brief, Company Report,
   Company Comparison, Market Analysis, News Analysis and Upgrade.
-- The live MCP snapshot contains 17 tools. News searches the corpus before web
+- The live MCP snapshot contains 18 tools. News searches the corpus before web
   supplementation; date discovery uses `get_available_dates`, not physical tables.
 - Platform-only differences live inside the core Skill's `references/hosts`. Agent-driven update checks
   run on first use and the first use six hours after the last successful check.
@@ -72,7 +77,7 @@ Older release notes below describe historical behavior, not the current contract
 ## What changed in 0.6.0-dev.6
 
 - Every selected Mining Market Research Skill performs one read-only Codex release check
-  against `anchises-analysis/codex/v*` Git tags. This is independent of MCP
+  against the then-current platform-specific Git tags. This is independent of MCP
   service versioning; current, unknown, and failed checks stay silent.
 - An available update adds one operational footer after the normal business
   answer. Installation requires an explicit Mining Market Research update sentence;
@@ -159,14 +164,14 @@ Older release notes below describe historical behavior, not the current contract
 ```text
 .agents/plugins/marketplace.json
 .claude-plugin/marketplace.json
-plugins/anchises-analysis/
+plugins/mining-market-research/
   .codex-plugin/plugin.json
   .claude-plugin/plugin.json
   .mcp.json
   assets/
   contracts/
   skills/
-    anchises-analysis/
+    mining-market-research/
       workflows/
       references/
       scripts/
@@ -190,31 +195,31 @@ or the Data API.
 .venv/bin/python -m unittest discover -s tests -v
 
 .venv/bin/python \
-  plugins/anchises-analysis/skills/mining-market-research/scripts/validate_plugin_policy.py
+  plugins/mining-market-research/skills/mining-market-research/scripts/validate_plugin_policy.py
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/mining-market-research
+  plugins/mining-market-research/skills/mining-market-research
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/company-brief
+  plugins/mining-market-research/skills/company-brief
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/company-report
+  plugins/mining-market-research/skills/company-report
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/company-comparison
+  plugins/mining-market-research/skills/company-comparison
 
 .venv/bin/python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/anchises-analysis/skills/market-analysis
+  plugins/mining-market-research/skills/market-analysis
 
 .venv/bin/python \
   ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py \
-  plugins/anchises-analysis
+  plugins/mining-market-research
 
 claude plugin validate . --strict
 ```
@@ -240,7 +245,7 @@ The repo marketplace name is read from `.agents/plugins/marketplace.json`:
   ~/.codex/skills/.system/plugin-creator/scripts/read_marketplace_name.py \
   --marketplace-path .agents/plugins/marketplace.json
 
-codex plugin add anchises-analysis@Anchises-Analysis
+codex plugin add mining-market-research@Anchises-Analysis
 ```
 
 After changing plugin content, run the cachebuster helper before reinstalling
@@ -249,13 +254,13 @@ and start a new Codex task so the new Skill and MCP schema are loaded.
 ```bash
 .venv/bin/python \
   ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py \
-  plugins/anchises-analysis
+  plugins/mining-market-research
 
 .venv/bin/python \
-  plugins/anchises-analysis/scripts/sync_plugin_release.py --platform all
+  plugins/mining-market-research/scripts/sync_plugin_release.py --platform all
 
 .venv/bin/python \
-  plugins/anchises-analysis/scripts/sync_plugin_release.py --platform all --check
+  plugins/mining-market-research/scripts/sync_plugin_release.py --platform all --check
 ```
 
 The cachebuster preserves the Codex `0.6.0-dev.9` base and creates one new
@@ -287,9 +292,9 @@ codex plugin marketplace add \
   https://github.com/2026Allin/anchises-stock-qa.git \
   --ref main \
   --sparse .agents/plugins \
-  --sparse plugins/anchises-analysis
+  --sparse plugins/mining-market-research
 
-codex plugin add anchises-analysis@Anchises-Analysis
+codex plugin add mining-market-research@Anchises-Analysis
 ```
 
 The equivalent desktop form uses the repository URL as **Source**,
@@ -297,7 +302,7 @@ The equivalent desktop form uses the repository URL as **Source**,
 
 ```text
 .agents/plugins
-plugins/anchises-analysis
+plugins/mining-market-research
 ```
 
 This install does not use `Share with you`, Portal Scan, or a Developer Mode
@@ -322,9 +327,9 @@ Claude Code can add the Marketplace directly from this GitHub repository:
 ```bash
 claude plugin marketplace add \
   2026Allin/anchises-stock-qa@main \
-  --sparse .claude-plugin plugins/anchises-analysis
+  --sparse .claude-plugin plugins/mining-market-research
 
-claude plugin install anchises-analysis@anchises-capital
+claude plugin install mining-market-research@anchises-capital
 ```
 
 In Claude Chat, Desktop, or Cowork, open **Customize → Plugins**, choose
@@ -334,7 +339,7 @@ exactly one visible self-contained `Mining Market Research` Skill, its unchanged
 business workflows, and the shared Hosted MCP. Start a new Claude conversation
 after installation or update.
 
-Claude release checks consider only `anchises-analysis/claude/v*`. Claude Code
+Claude release checks consider only `mining-market-research/claude/v*`. Claude Code
 can run the guarded fixed CLI update after exact authorization; Chat, Desktop,
 and Cowork instead hand off to
 `Customize → Plugins → Mining Market Research → Update` and never claim the UI

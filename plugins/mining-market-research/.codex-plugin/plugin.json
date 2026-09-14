@@ -1,0 +1,47 @@
+{
+  "name": "mining-market-research",
+  "version": "0.6.0-dev.12+codex.20260914025540",
+  "description": "Research public companies with live web sources and analyze stock-market data.",
+  "author": {
+    "name": "Anchises Capital",
+    "email": "tech@anchisesgroup.com",
+    "url": "https://anchisesdata.com"
+  },
+  "homepage": "https://anchisesdata.com/stock-qa",
+  "repository": "https://github.com/2026Allin/anchises-stock-qa",
+  "license": "MIT",
+  "keywords": [
+    "stocks",
+    "company-research",
+    "screening",
+    "market-data",
+    "company-reports",
+    "csv-export"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Mining Market Research",
+    "shortDescription": "Live company research and server-side stock-market analysis.",
+    "longDescription": "Mining Market Research combines source-linked live public-company research with structured stock-market analysis. It resolves a company name or ticker to a canonical exchange, ticker, and company name, verifies ambiguous or external listings with primary public sources, and prepares company research for the host to execute with live web search directly in the current conversation. The MCP service does not persist the resulting report. Full matched stock-data ranges can be used server-side for filtering, statistics, rankings, and aggregation; each call displays at most 200 rows. Complete-history analysis continues through opaque cursors as needed, while CSV-only requests can export using the first page's query ID. Unknown totals remain unknown, and actual export responses determine success. Top-N bounds the complete logical ranked result rather than the current display page. Temporary CSV downloads follow server-enforced query and export capabilities: eligibility, allowed screen or SQL source tools, and hard limits are returned for each query. The plugin never bypasses an actual service refusal through split queries. Structured market coverage and trading dates are discovered dynamically from the service; company research may cover verified companies outside those markets. News research searches the corpus first, reads at most five selected articles per request, and uses actual host web research for any supplement. Reports and market analysis are informational, not official filings or investment advice. Public access requires no Mining Market Research account or credentials and has no account-linked cross-session cumulative budget; shared short-term service limits still apply. CSV URLs are short-lived bearer links and should not be shared.",
+    "developerName": "Anchises Capital",
+    "category": "Productivity",
+    "brandColor": "#334155",
+    "composerIcon": "./assets/composer-icon.png",
+    "logo": "./assets/logo.png",
+    "logoDark": "./assets/logo.png",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://anchisesdata.com/stock-qa",
+    "privacyPolicyURL": "https://anchisesdata.com/privacy",
+    "termsOfServiceURL": "https://anchisesdata.com/terms",
+    "defaultPrompt": [
+      "Research Apple, verify its primary listing, and generate a fresh source-linked company report.",
+      "Analyze NYSE advance/decline counts, averages, and distributions using the full market.",
+      "Rank the NASDAQ Top 100 by dollar volume and export only the key research fields as CSV."
+    ]
+  }
+}

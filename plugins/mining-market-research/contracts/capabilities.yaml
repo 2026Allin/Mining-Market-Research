@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "display_name": "Mining Market Research",
+  "hosts": [
+    "codex",
+    "claude-code"
+  ],
+  "groups": {
+    "service": {
+      "skills": [
+        "mining-market-research"
+      ],
+      "tools": {
+        "get_connection_status": {}
+      }
+    },
+    "market_discovery": {
+      "skills": [
+        "market-analysis"
+      ],
+      "tools": {
+        "get_available_exchanges": {},
+        "get_latest_dates": {
+          "exchanges": [
+            "ASX"
+          ]
+        },
+        "get_stock_schema": {},
+        "get_available_dates": {
+          "exchanges": [
+            "ASX"
+          ],
+          "start_date": "2026-07-01",
+          "end_date": "2026-07-15"
+        },
+        "list_stock_tables": {},
+        "get_table_schema": {
+          "tables": [
+            "stock_daily"
+          ]
+        }
+      }
+    },
+    "market_query": {
+      "skills": [
+        "news-analysis",
+        "market-analysis"
+      ],
+      "tools": {
+        "screen_stocks": {
+          "exchanges": [
+            "ASX"
+          ],
+          "page_size": 10
+        },
+        "validate_readonly_sql": {
+          "sql": "SELECT COUNT(*) AS count FROM stock_daily"
+        },
+        "run_readonly_sql": {
+          "sql": "SELECT COUNT(*) AS count FROM stock_daily"
+        }
+      }
+    },
+    "company": {
+      "skills": [
+        "company-brief",
+        "company-report",
+        "company-comparison"
+      ],
+      "tools": {
+        "resolve_company_identity": {
+          "query": "BHP",
+          "purpose": "company_report"
+        },
+        "get_company_report": {
+          "exchange": "ASX",
+          "ticker": "BHP",
+          "company_name": "BHP Group",
+          "output_locale": "en",
+          "mode": "auto"
+        },
+        "prepare_company_report_generation": {
+          "exchange": "ASX",
+          "ticker": "BHP",
+          "company_name": "BHP Group",
+          "output_locale": "en"
+        }
+      }
+    },
+    "news": {
+      "skills": [
+        "news-analysis",
+        "company-brief",
+        "company-report",
+        "company-comparison",
+        "market-analysis"
+      ],
+      "tools": {
+        "list_news_filters": {},
+        "search_news": {
+          "q": "黄金钻探 gold drill",
+          "page_size": 20
+        },
+        "get_news_article": {
+          "news_code": 100000000001
+        },
+        "prepare_news_web_research": {
+          "q": "黄金钻探 gold drill"
+        }
+      }
+    },
+    "export": {
+      "skills": [
+        "market-analysis"
+      ],
+      "tools": {
+        "create_csv_export": {
+          "query_id": "qry_example12345678"
+        }
+      }
+    }
+  },
+  "limits": {
+    "news_article_calls_per_request": 5,
+    "news_page_size": 50,
+    "stock_page_size": 200
+  },
+  "rules": {
+    "release_check": "agent_driven_six_hour_success_cache",
+    "news": "corpus_before_web",
+    "fusion": "shared_owner_company_type_priorities_and_live_macro_context",
+    "sql": "validate_before_execute",
+    "export": "explicit_request_and_eligible_current_query",
+    "coverage": "dynamic_exchange_and_date_discovery"
+  },
+  "oauth_scope_verification": "New tools observed under noauth have no verified OAuth scope mapping; OAuth host acceptance requires live authenticated discovery."
+}

@@ -14,7 +14,7 @@ separate acceptance items. No GitHub release is authorized by this test plan.
 
 ## Deterministic offline regression
 
-Run `python3 plugins/anchises-analysis/scripts/run_update_scenarios.py`.
+Run `python3 plugins/mining-market-research/scripts/run_update_scenarios.py`.
 Its JSON marks evidence as `offline-synthetic-not-host-certification`.
 Synthetic version 999.0.0 and clock values exist only in the test harness,
 outside the distributed plugin. All state lives in a temporary directory.

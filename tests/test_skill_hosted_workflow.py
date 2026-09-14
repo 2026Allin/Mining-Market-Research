@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = ROOT / "plugins" / "anchises-analysis"
+PLUGIN_ROOT = ROOT / "plugins" / "mining-market-research"
 PLUGIN_README = PLUGIN_ROOT / "README.md"
 SKILL_ROOT = PLUGIN_ROOT / "skills" / "mining-market-research"
 SKILL = SKILL_ROOT / "SKILL.md"
@@ -51,6 +51,7 @@ EXPECTED_TOOLS = {
     "validate_readonly_sql",
     "run_readonly_sql",
     "resolve_company_identity",
+    "get_company_report",
     "prepare_company_report_generation",
     "list_news_filters",
     "search_news",
@@ -60,6 +61,13 @@ EXPECTED_TOOLS = {
 }
 
 EXPECTED_SKILL_BUNDLE_FILES = {
+    Path("workflows/event-market-analysis.md"),
+    Path("references/news-retrieval.md"),
+    Path("references/mining-analysis-priorities.md"),
+    Path("references/event-time-alignment.md"),
+    Path("references/market-reaction-metrics.md"),
+    Path("references/macro-metals-context.md"),
+    Path("scripts/event_market_metrics.py"),
     Path("references/hosts/claude-chat.md"),
     Path("references/hosts/claude-code.md"),
     Path("references/hosts/codex.md"),
@@ -221,7 +229,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             policy_files,
             [
                 Path(
-                    "plugins/anchises-analysis/skills/mining-market-research/"
+                    "plugins/mining-market-research/skills/mining-market-research/"
                     "references/plugin-policy.json"
                 )
             ],
@@ -249,22 +257,10 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertIn("cannot grant a capability", combined)
 
     def test_disabled_policy_removes_legacy_prechecks_but_not_service_gates(self) -> None:
-        combined = " ".join(_bundle_text(MARKET_SKILL_ROOT).split())
-        for legacy_dimension in (
-            "browse",
-            "Top-N",
-            "ticker",
-            "field",
-            "cell",
-            "partition",
-            "complete-market",
-            "SQL-export",
-        ):
-            self.assertIn(legacy_dimension, combined)
-        self.assertIn("do not pre-apply legacy restricted-mode", combined)
-        self.assertIn("`export_policy.eligible_by_query` is true", combined)
-        self.assertIn("never split one actually ineligible result", combined)
-        self.assertIn("never add or use SQL `OFFSET`", combined)
+        policy = (REFERENCE_ROOT / "market-data-policy.md").read_text()
+        for rule in ("Do not read or depend on", "contains_complete_partition",
+                     "not an export prerequisite", "either state", "never evade an actual refusal"):
+            self.assertIn(rule, policy)
 
     def test_five_skills_share_the_existing_hosted_mcp_contract(self) -> None:
         skill_dirs = sorted(
@@ -452,11 +448,11 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertIn("A bare “是”", normalized)
         self.assertIn("Silence never authorizes work", normalized)
         self.assertIn("Do not persist an ignored release", normalized)
-        self.assertIn("valid successful result is fresh for 1 hour", normalized)
-        self.assertIn("fresh for 10 minutes", normalized)
-        self.assertIn("anchises-analysis/codex/v*", protocol)
-        self.assertIn("anchises-analysis/claude/v*", protocol)
-        self.assertIn("remote `main` head", protocol)
+        self.assertIn("session-only six-hour", normalized)
+        self.assertIn("an explicit update check uses check --force", normalized)
+        self.assertIn("mining-market-research/codex/v*", protocol)
+        self.assertIn("mining-market-research/claude/v*", protocol)
+        self.assertIn("`refs/heads/main`", protocol)
         self.assertIn("`marketplaceSource.refName`", protocol)
         self.assertIn("remote `HEAD`", protocol)
         self.assertIn("`refs/heads/main`", protocol)
@@ -480,15 +476,15 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         for command in (
             "codex plugin list --json",
             "codex plugin marketplace list --json",
-            "codex plugin marketplace upgrade Anchises-Analysis --json",
-            "codex plugin add anchises-analysis@Anchises-Analysis --json",
+            "codex plugin marketplace upgrade <validated-metadata.marketplace> --json",
+            "codex plugin add <validated-metadata.plugin_id> --json",
         ):
             self.assertIn(command, codex_protocol)
         for command in (
             "claude plugin list --json",
             "claude plugin marketplace list --json",
             "claude plugin marketplace update anchises-capital",
-            "claude plugin update anchises-analysis@anchises-capital",
+            "claude plugin update mining-market-research@anchises-capital",
         ):
             self.assertIn(command, claude_protocol)
         self.assertIn("Customize → Plugins → Mining Market Research → Update", claude_protocol)
@@ -518,7 +514,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             for line in protocol.splitlines()
             if line.strip().startswith("git ls-remote -- ")
         ]
-        self.assertEqual(len(network_lines), 2)
+        self.assertEqual(len(network_lines), 1)
         for line in network_lines:
             git_segment = line.split(" | ", 1)[0]
             self.assertEqual(
@@ -553,10 +549,10 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 "tag_prefix",
             },
         )
-        self.assertEqual(release["version"], "0.6.0-dev.11")
+        self.assertEqual(release["version"], "0.6.0-dev.12")
         self.assertRegex(release["release_id"], r"^codex\.\d{14}$")
         self.assertEqual(release["git_ref"], "main")
-        self.assertEqual(release["tag_prefix"], "anchises-analysis/codex/v")
+        self.assertEqual(release["tag_prefix"], "mining-market-research/codex/v")
         self.assertEqual(release["marketplace"], "Anchises-Analysis")
         self.assertEqual(
             release["repository"],
@@ -592,12 +588,14 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         ):
             self.assertIn(value, normalized)
 
-    def test_company_report_requests_start_live_research_without_confirmation(self) -> None:
+    def test_company_report_requests_select_before_live_research(self) -> None:
         text = _bundle_text(REPORT_SKILL_ROOT)
         normalized = " ".join(text.split())
-        self.assertIn("explicit report request authorizes immediate live research", normalized)
+        self.assertIn("response authorizes immediate live research", normalized)
         self.assertIn("do not ask whether to generate it", normalized)
-        self.assertIn("Do not read a prior stored report first", normalized)
+        self.assertIn("report_available", normalized)
+        self.assertIn("generation_ready", normalized)
+        self.assertNotIn("Do not read a prior stored report first", normalized)
         self.assertIn("The MCP returns a research prompt", normalized)
         self.assertIn("The Host must execute", normalized)
         self.assertIn("Do not send the report back to MCP", normalized)
@@ -665,7 +663,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertIn("`primary_task=market_data`", market)
         self.assertIn("`primary_task` is `company_brief`", brief)
 
-        self.assertIn("Call `prepare_company_report_generation` directly", report)
+        self.assertIn("Call `get_company_report`", report)
         self.assertNotIn(
             "Call `prepare_company_report_generation` directly",
             "\n".join((brief, comparison, market)),
@@ -792,12 +790,13 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             {"query": "Apple", "purpose": "company_report"},
         )
         self.assertEqual(
-            case["expected_arguments"]["prepare_company_report_generation"],
+            case["expected_arguments"]["get_company_report"],
             {
                 "exchange": "NASDAQ",
                 "ticker": "AAPL",
                 "company_name": "Apple Inc.",
                 "output_locale": "zh-CN",
+                "mode": "auto",
             },
         )
 
@@ -810,14 +809,15 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             case["expected_arguments"]["resolve_company_identity"]["query"],
             "AAPL",
         )
-        self.assertIn("company_name", case["expected_arguments"]["prepare_company_report_generation"])
+        self.assertIn("company_name", case["expected_arguments"]["get_company_report"])
 
     def test_prior_chat_reference_can_generate_a_report(self) -> None:
         case = next(
             item for item in _golden_cases()["positive"]
             if item["id"] == "context-reference-live-report"
         )
-        self.assertIn("resolve_company_identity", case["expected_tools"])
+        self.assertNotIn("resolve_company_identity", case["expected_tools"])
+        self.assertIn("verified identity", case["expected_behavior"])
         self.assertIn("never send the full conversation", case["expected_behavior"])
         self.assertIn("this company", _skill_bundle_text())
 
@@ -1062,7 +1062,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             item for item in _golden_cases()["positive"]
             if item["id"] == "external-market-live-report"
         )
-        prepare = case["expected_arguments"]["prepare_company_report_generation"]
+        prepare = case["expected_arguments"]["get_company_report"]
         self.assertEqual(
             prepare,
             {
@@ -1070,6 +1070,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 "ticker": "RIO",
                 "company_name": "Rio Tinto plc",
                 "output_locale": "en",
+                "mode": "auto",
             },
         )
         self.assertIn("identity_source=host_supplied", case["expected_behavior"])
@@ -1080,14 +1081,14 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             if item["id"] == "external-market-stock-data-limit"
         )
         self.assertIn("run_readonly_sql", case["forbidden_tools"])
-        self.assertIn("ASX, CSE, NASDAQ, NYSE, TSX, and TSXV", case["expected_behavior"])
+        self.assertIn("service's actual supported exchanges", case["expected_behavior"])
 
     def test_inactive_or_delisted_company_still_uses_live_research(self) -> None:
         case = next(
             item for item in _golden_cases()["positive"]
             if item["id"] == "inactive-company-live-report"
         )
-        self.assertIn("prepare_company_report_generation", case["expected_tools"])
+        self.assertIn("get_company_report", case["expected_tools"])
         self.assertIn("delisting status", case["expected_behavior"])
         self.assertIn("selected_sector=Others", _skill_bundle_text())
 
@@ -1153,7 +1154,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
     def test_contract_snapshot_has_new_twelve_tool_shape(self) -> None:
         contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
         names = [tool["name"] for tool in contract["tools"]]
-        self.assertEqual(len(names), 17)
+        self.assertEqual(len(names), 18)
         self.assertEqual(set(names), EXPECTED_TOOLS)
         self.assertEqual(
             contract["source"]["server_name"], "Mining Market Research"
@@ -1166,7 +1167,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         self.assertEqual(contract["source"]["sync_state"], "live")
         self.assertRegex(contract["source"]["descriptor_sha256"], r"^[0-9a-f]{64}$")
 
-    def test_prepare_snapshot_requires_four_fields_and_prompt_5_1(self) -> None:
+    def test_prepare_snapshot_requires_four_fields_and_prompt_5_2(self) -> None:
         contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
         tool = next(
             item for item in contract["tools"]
@@ -1177,7 +1178,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             {"exchange", "ticker", "company_name", "output_locale"},
         )
         data = tool["outputSchema"]["properties"]["data"]["properties"]
-        self.assertEqual(data["prompt_version"]["enum"], ["5.1", None])
+        self.assertEqual(data["prompt_version"]["enum"], ["5.2", None])
         self.assertEqual(data["identity_source"]["enum"], ["master", "host_supplied"])
         self.assertEqual(
             data["next_action"]["enum"],
@@ -1185,79 +1186,38 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         )
 
     def test_csv_export_guidance_uses_dynamic_policy_and_allowed_lifetimes(self) -> None:
-        combined = " ".join(_bundle_text(MARKET_SKILL_ROOT).split())
-        self.assertIn("default 60-minute", combined)
-        self.assertIn("60 through 3,600 seconds", combined)
-        self.assertIn("`expires_in_seconds`", combined)
-        self.assertIn("`market_data_restrictions`", combined)
-        self.assertIn("`get_connection_status.data_policy`", combined)
-        self.assertIn("`restricted`", combined)
-        self.assertIn("`bulk_enabled`", combined)
-        self.assertIn("`source_tools_allowed`", combined)
-        self.assertIn("dynamic `limits`", combined)
+        policy = (REFERENCE_ROOT / "market-data-policy.md").read_text()
+        for term in ("60 through 3,600 seconds", "default 60-minute", "expires_in_seconds",
+                     "provisional", "actual export response", "source_tools_allowed"):
+            self.assertIn(term, policy)
 
     def test_user_facing_export_copy_is_question_led_without_limit_recital(self) -> None:
-        answer_format = (
-            REFERENCE_ROOT / "market-answer-format.md"
-        ).read_text(encoding="utf-8")
-        normalized = " ".join(answer_format.split())
-        for threshold in (
-            "1,000 rows",
-            "25 total columns",
-            "20,000 cells",
-            "Top-N 200",
-            "50 exact tickers",
-        ):
-            self.assertNotIn(threshold, normalized)
-        self.assertIn("Tailor suggested fields to the user's question", normalized)
-        self.assertIn("confirm them with `get_stock_schema`", normalized)
-        self.assertIn("Never mention the bundled policy value", normalized)
-        self.assertNotIn("licensed exchange-data vendor", normalized)
-        self.assertNotIn(
-            "Ticker, Company, Exchange, Open, High, Low, Close",
-            normalized,
-        )
+        answer = (REFERENCE_ROOT / "market-answer-format.md").read_text()
+        self.assertIn("Preview eligibility does not prove file creation", answer)
+        self.assertIn("without modifying the user's original query", " ".join(answer.split()))
+        self.assertNotIn("1,000 rows", answer)
+        self.assertNotIn("25 total columns", answer)
+        self.assertNotIn("licensed exchange-data vendor", answer)
 
     def test_market_data_policy_uses_cursor_and_dynamic_export_contract(self) -> None:
-        combined = " ".join(_bundle_text(MARKET_SKILL_ROOT).split())
-        self.assertIn("data.export_policy.eligible_by_query", combined)
-        self.assertIn("never infer eligibility from a legacy field", combined)
-        self.assertIn("`data.export_policy.source_tools_allowed`", combined)
-        self.assertIn("`pagination_next_action=call_same_tool_with_cursor`", combined)
-        self.assertIn("only the unmodified `page.next_cursor`", combined)
-        self.assertIn("Never resend or rewrite the SQL", combined)
-        self.assertIn("never add or use SQL `OFFSET`", combined)
-        self.assertIn("never split filters, fields, tickers, dates", combined)
+        policy = (REFERENCE_ROOT / "market-data-policy.md").read_text()
+        for term in ("page.next_cursor", "page.truncated", "pagination_limit_reached",
+                     "matched_row_count=null", "page_size", "max_rows",
+                     "Never resend instruments", "No cursor alone", "CSV only"):
+            self.assertIn(term, policy)
 
     def test_policy_errors_have_safe_recovery_instructions(self) -> None:
-        combined = " ".join(_bundle_text(MARKET_SKILL_ROOT).split())
-        for code in (
-            "export_requires_selective_query",
-            "export_row_limit_exceeded",
-            "export_column_limit_exceeded",
-            "export_cell_limit_exceeded",
-            "export_complete_partition_not_allowed",
-            "export_top_n_limit_exceeded",
-            "export_ticker_limit_exceeded",
-            "query_not_exportable",
-            "query_policy_expired",
-            "query_partition_limit_exceeded",
-            "query_requires_bounded_analysis",
-            "result_too_large",
-            "temporarily_unavailable",
-        ):
-            self.assertIn(f"`{code}`", combined)
-        self.assertIn("rerun the original intent", combined)
-        self.assertIn("download is temporarily unavailable", combined)
+        policy = (REFERENCE_ROOT / "market-data-policy.md").read_text()
+        for term in ("explain the returned", "until the user chooses it",
+                     "old and new analysis pages", "never loop on a repeated failure"):
+            self.assertIn(term, policy)
+        self.assertNotIn("export_complete_partition_not_allowed", policy)
 
     def test_actual_export_refusal_is_courteous_and_bundled_policy_is_hidden(self) -> None:
-        combined = " ".join(_bundle_text(MARKET_SKILL_ROOT).split())
-        self.assertIn("explain only the actual returned reason", combined)
-        self.assertIn("without exposing it or offering a user control", combined)
-        self.assertIn("Tailor suggested fields to the user's question", combined)
-        self.assertNotIn("licensed exchange-data vendor", combined)
-        self.assertNotIn("When restricted mode refuses", combined)
-        self.assertNotIn("connector has reached its monthly call limit", combined)
+        policy = " ".join((REFERENCE_ROOT / "market-data-policy.md").read_text().split())
+        self.assertIn("Never mention it, offer a setting for it", policy)
+        self.assertIn("explain the returned reason", policy)
+        self.assertIn("Preserve valid analysis when only export fails", policy)
 
     def test_normal_analyst_requests_are_policy_transparent(self) -> None:
         cases = _golden_cases()
@@ -1271,8 +1231,8 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             "historical-sql-fallback",
             "broad-result-preview",
             "csv-export",
-            "complete-row-table-no-pagination",
-            "complete-partition-export-rejected",
+            "complete-row-table-cursor-pagination",
+            "complete-exchange-day-export-server-decision",
             "sql-query-not-exportable",
             "query-policy-expired",
             "liquidity-fields-from-question",
@@ -1306,13 +1266,13 @@ class SkillHostedWorkflowTest(unittest.TestCase):
     def test_openai_metadata_matches_all_five_skills(self) -> None:
         expected = {
             OPENAI_YAML: ("Mining Market Research", "$mining-market-research"),
-            BRIEF_OPENAI_YAML: ("Company Brief", "$company-brief"),
-            REPORT_OPENAI_YAML: ("Company Report", "$company-report"),
+            BRIEF_OPENAI_YAML: ("Mining Market Research — Company Brief", "$company-brief"),
+            REPORT_OPENAI_YAML: ("Mining Market Research — Company Report", "$company-report"),
             COMPARISON_OPENAI_YAML: (
-                "Company Comparison",
+                "Mining Market Research — Company Comparison",
                 "$company-comparison",
             ),
-            MARKET_OPENAI_YAML: ("Market Analysis", "$market-analysis"),
+            MARKET_OPENAI_YAML: ("Mining Market Research — Market Analysis", "$market-analysis"),
         }
         for path, (display_name, invocation) in expected.items():
             text = path.read_text(encoding="utf-8")
@@ -1323,7 +1283,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
     def test_manifest_bundles_cross_workspace_remote_mcp(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         mcp_manifest = json.loads(MCP_MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["name"], "anchises-analysis")
+        self.assertEqual(manifest["name"], "mining-market-research")
         self.assertEqual(manifest["mcpServers"], "./.mcp.json")
         self.assertNotIn("apps", manifest)
         self.assertFalse(LEGACY_APP_MANIFEST.exists())
@@ -1348,10 +1308,10 @@ class SkillHostedWorkflowTest(unittest.TestCase):
 
     def test_manifest_metadata_and_starter_prompts_match_release(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.11")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.12")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.11(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.12(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(manifest["author"]["name"], "Anchises Capital")
@@ -1440,8 +1400,8 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             "watchlist-40-tickers",
             "single-stock-one-year",
             "broad-result-preview",
-            "complete-row-table-no-pagination",
-            "complete-partition-export-rejected",
+            "complete-row-table-cursor-pagination",
+            "complete-exchange-day-export-server-decision",
             "sql-query-not-exportable",
             "query-policy-expired",
             "liquidity-fields-from-question",

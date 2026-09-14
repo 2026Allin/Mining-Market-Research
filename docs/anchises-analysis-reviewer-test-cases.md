@@ -1,7 +1,7 @@
 # Mining Market Research Reviewer Test Cases
 
 Run exactly five positive and three negative reviewer cases in a fresh task
-after installing `anchises-analysis@Anchises-Analysis`.
+after installing `mining-market-research@Anchises-Analysis`.
 
 ## Positive 1 — Public access and exchanges
 
@@ -17,22 +17,25 @@ access without credentials, and the supported structured-data markets.
 Expected: resolve Apple to NASDAQ / AAPL / Apple Inc., then use the canonical
 identity for structured market data.
 
-## Positive 3 — Direct live company report
+## Positive 3 — Company report selection
 
-> Research Apple and generate a current Simplified Chinese company report with primary-source links.
+> Show Apple's company research report in Simplified Chinese with source links.
 
-Expected: resolve identity, call preparation with all four required fields,
-then execute the hidden Prompt 5.1 instructions with live Host web search. The
-answer is the report itself, with `**Summary:**`, seven fixed English headings,
-localized bodies, a final English Risk label, and source links.
+Expected: establish identity and call `get_company_report(mode=auto)`.
+For `report_available`, show the original date and faithful translation without
+new facts or an invented risk rating, then ask once whether to refresh.
+Only `generation_ready` executes live Host research with `**Summary:**`, seven
+fixed English headings, localized bodies, a final English Risk label and source
+links. `not_eligible` explains and stops. Do not save or upload either output.
 
 ## Positive 4 — External-market report
 
 > Research LSE-listed Rio Tinto plc and generate a current English company report.
 
 Expected: the resolver reports no supported-market match; the Host verifies LSE
-/ RIO / Rio Tinto plc with primary sources and continues. Preparation uses
-`identity_source=host_supplied`, listing verification, and `Others`.
+/ RIO / Rio Tinto plc with primary sources and calls `auto`. Present an existing
+report faithfully. For generation, respect `identity_source=host_supplied`,
+listing verification and `Others` when returned. Do not force fresh research.
 
 ## Positive 5 — CSV export
 
