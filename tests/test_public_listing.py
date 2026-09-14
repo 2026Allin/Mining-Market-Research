@@ -136,12 +136,12 @@ class PublicListingTest(unittest.TestCase):
     def test_production_logo_assets_are_frozen(self) -> None:
         expected = {
             "logo.png": (
-                (512, 512),
-                "3eef3b9fcb0b64e9d6168a47363fdd65e09f368e2dfc3adced04cde683580c6d",
+                (1254, 1254),
+                "5f64d2bec83aa1418d0ac8e6a740bd80d4f4372dd2f615b266aba7f060f6a9b9",
             ),
             "composer-icon.png": (
-                (512, 512),
-                "3eef3b9fcb0b64e9d6168a47363fdd65e09f368e2dfc3adced04cde683580c6d",
+                (1254, 1254),
+                "5f64d2bec83aa1418d0ac8e6a740bd80d4f4372dd2f615b266aba7f060f6a9b9",
             ),
         }
         for filename, (dimensions, digest) in expected.items():
