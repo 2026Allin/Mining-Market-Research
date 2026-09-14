@@ -2,6 +2,7 @@
 import concurrent.futures
 import importlib.util
 import json
+import io
 from pathlib import Path
 import tempfile
 import unittest
@@ -38,9 +39,94 @@ class HookUpdatesTest(unittest.TestCase):
     def refs(self):
         return 'a'*40 + '\trefs/heads/main\n' + 'a'*40 + '\trefs/tags/' + self.meta['tag_prefix'] + '99.0.0\n'
 
+    def run_main(self, payload):
+        output, errors = io.StringIO(), io.StringIO()
+        stdin = Mock(buffer=io.BytesIO(payload))
+        with patch.object(hook.sys, 'stdin', stdin), patch.object(hook.sys, 'stdout', output), \
+                patch.object(hook.sys, 'stderr', errors):
+            hook.main()
+        return json.loads(output.getvalue()), errors.getvalue()
+
+    def diagnostics(self):
+        return [json.loads(line) for line in hook.diagnostic_path().read_text().splitlines()]
+
+    def test_main_diagnostic_success_and_redaction(self):
+        payload = {**self.event, 'tool_input': {'token': 'PRIVATE'},
+                   'tool_response': 'PRIVATE'}
+        result, errors = self.run_main(json.dumps(payload).encode())
+        self.assertIn('hookSpecificOutput', result)
+        records = self.diagnostics()
+        self.assertEqual([r['stage'] for r in records],
+                         ['entered', 'event_received', 'initializing', 'context_ready', 'completed'])
+        self.assertEqual(len({r['invocation'] for r in records}), 1)
+        self.assertNotIn('PRIVATE', errors + json.dumps(records))
+        self.assertNotIn(self.event['session_id'], json.dumps(records))
+
+    def test_main_initialization_failure_is_visible_and_fail_open(self):
+        with patch.object(updates, 'initialize_host_session', side_effect=OSError('PRIVATE')):
+            result, errors = self.run_main(json.dumps(self.event).encode())
+        self.assertEqual(result, {})
+        self.assertEqual(self.diagnostics()[-1]['stage'], 'dispatch_failed')
+        self.assertNotIn('PRIVATE', errors)
+        self.assertNotIn('context_ready', [r['stage'] for r in self.diagnostics()])
+
+    def test_invalid_input_and_rejected_tool_are_visible(self):
+        result, _ = self.run_main(b'not json PRIVATE')
+        self.assertEqual(result, {})
+        self.assertEqual(self.diagnostics()[-1]['stage'], 'input_invalid')
+        result, errors = self.run_main(json.dumps({**self.event, 'tool_name': 'PRIVATE'}).encode())
+        self.assertEqual(result, {})
+        self.assertIn('matcher_rejected', errors)
+        self.assertNotIn('PRIVATE', errors)
+
+    def test_diagnostic_log_bound_and_symlink_rejection(self):
+        with patch.object(hook.sys, 'stderr', io.StringIO()):
+            emit = hook.diagnostic_writer()
+            for _ in range(600):
+                emit('entered')
+            path = hook.diagnostic_path()
+            self.assertLessEqual(path.stat().st_size, 65536)
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            self.diagnostics()  # Every retained line is valid JSON.
+            path.unlink()
+            target = Path(self.temp.name) / 'untouched'
+            target.write_text('keep')
+            path.symlink_to(target)
+            emit('entered')
+            self.assertEqual(target.read_text(), 'keep')
+
+    def test_log_failure_does_not_change_output(self):
+        with patch.object(hook.os, 'open', side_effect=PermissionError()):
+            result, errors = self.run_main(b'{}')
+        self.assertEqual(result, {})
+        self.assertIn('entered', errors)
+
+    def test_diagnostic_only_never_enters_update_flow(self):
+        with patch.object(hook.sys, 'argv', ['dispatch.py', '--diagnostic-only']), \
+                patch.object(hook, 'handle', side_effect=AssertionError('must not run')):
+            for name in ('exec', 'Bash', self.event['tool_name']):
+                result, errors = self.run_main(json.dumps({**self.event, 'tool_name': name}).encode())
+                self.assertEqual(result, {})
+                self.assertIn('probe_completed', errors)
+                self.assertEqual(self.diagnostics()[-1]['tool'], name)
+
     def test_all_contract_tools_matched(self):
         contract = json.loads((PLUGIN / 'contracts/hosted-mcp-v1.json').read_text())
         self.assertEqual(set(contract['oauth']['tool_scopes']), hook.TOOLS)
+
+    def test_shipped_hooks_are_not_temporary_probes(self):
+        config = json.loads((PLUGIN / 'hooks/hooks.json').read_text())['hooks']
+        for event, timeout in [('PreToolUse', 20), ('PostToolUse', 5)]:
+            self.assertEqual(len(config[event]), 1)
+            rule = config[event][0]
+            self.assertEqual(rule['matcher'], '^mcp__mining_market_research__.*')
+            import re
+            for tool in hook.TOOLS:
+                self.assertIsNotNone(re.fullmatch(rule['matcher'], 'mcp__mining_market_research__' + tool))
+            for tool in ('exec', 'Bash', 'mcp__other__search_news'):
+                self.assertIsNone(re.search(rule['matcher'], tool))
+            self.assertNotIn('--diagnostic-only', rule['hooks'][0]['command'])
+            self.assertEqual(rule['hooks'][0]['timeout'], timeout)
 
     def test_concurrent_context_join_and_isolation(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
@@ -62,6 +148,19 @@ class HookUpdatesTest(unittest.TestCase):
         self.assertEqual(cached['network_queries'], 0)
         hook.handle(self.event, platform='codex', allow_network=True, lookup=lookup, now=21700)
         self.assertEqual(lookup.call_count, 2)
+
+    def test_context_injected_only_on_first_use_or_changed_status(self):
+        lookup = Mock(return_value=self.refs())
+        self.assertTrue(hook.handle(self.event, platform='codex', allow_network=True, lookup=lookup, now=100))
+        self.assertEqual(hook.handle(self.event, platform='codex', allow_network=True, lookup=lookup, now=101), {})
+        self.assertEqual(lookup.call_count, 1)
+        self.assertTrue(hook.handle(self.event, platform='codex', allow_network=True, lookup=lookup, now=21700))
+        self.assertEqual(lookup.call_count, 2)
+
+    def test_network_permission_is_only_on_pre_hook_command(self):
+        config = json.loads((PLUGIN / 'hooks/hooks.json').read_text())['hooks']
+        self.assertTrue(config['PreToolUse'][0]['hooks'][0]['command'].startswith('MMR_HOOK_ALLOW_NETWORK=1 '))
+        self.assertNotIn('MMR_HOOK_ALLOW_NETWORK', config['PostToolUse'][0]['hooks'][0]['command'])
 
     def test_no_permission_does_not_poison_skill_fallback(self):
         lookup = Mock(side_effect=AssertionError('no network'))
