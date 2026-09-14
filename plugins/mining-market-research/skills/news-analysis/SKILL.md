@@ -14,8 +14,8 @@ fusion branch and its shared company-type priorities and macro web research.
 Do not assume another Skill or the coordinator has loaded those rules.
 Headline-only and CSV-only tasks keep their lightweight paths.
 
-For EVERY substantive request, execute the shared update `check` once; never
-skip it because a previous turn was cached. Reuse only within this request.
+For every substantive request, reuse this request's successful Hook check and
+context_file, or execute the shared `check` fallback; never create a parallel cache.
 Read [update policy](../mining-market-research/references/update-notifications.md)
 for host arguments and permission rules. At successful finalization call
 `notice`; acknowledge only a notice actually included in the answer.

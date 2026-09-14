@@ -61,10 +61,10 @@ MARKETPLACE = "anchises-capital"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GITHUB_REPOSITORY = "2026Allin/anchises-stock-qa"
 TAG_PREFIX = "mining-market-research/claude/v"
-CURRENT_VERSION = "0.6.0-dev.13"
-CURRENT_RELEASE = "0.6.0-dev.13+claude.20260806170037"
-TARGET_VERSION = "0.6.0-dev.14"
-TARGET_RELEASE = "0.6.0-dev.14+claude.20260808120000"
+CURRENT_VERSION = "0.6.0-dev.14"
+CURRENT_RELEASE = "0.6.0-dev.14+claude.20260806170037"
+TARGET_VERSION = "0.6.0-dev.15"
+TARGET_RELEASE = "0.6.0-dev.15+claude.20260808120000"
 MAIN_COMMIT = "4" * 40
 OTHER_COMMIT = "5" * 40
 
@@ -206,8 +206,9 @@ class ClaudeManifestTest(unittest.TestCase):
                         self.assertTrue(resolved.is_relative_to(package.resolve()), str(source))
                         self.assertTrue(resolved.is_file(), f"{source}: {target}")
 
-    def test_shared_mcp_contract_remains_exactly_twelve_tools(self) -> None:
+    def test_shared_mcp_contract_has_eighteen_tools_and_codex_declarations(self) -> None:
         mcp = json.loads((PLUGIN_ROOT / ".mcp.json").read_text(encoding="utf-8"))
+        manifest = json.loads((PLUGIN_ROOT / ".codex-plugin/plugin.json").read_text())
         self.assertEqual(
             mcp,
             {
@@ -215,6 +216,13 @@ class ClaudeManifestTest(unittest.TestCase):
                     "mining_market_research": {
                         "type": "http",
                         "url": "https://mcp.anchisesdata.com/mcp",
+                        "http_headers": {
+                            "X-MMR-Plugin-Version": manifest["version"].split("+", 1)[0],
+                            "X-MMR-Plugin-Build": manifest["version"].split("+", 1)[1],
+                            "X-MMR-Platform": "codex",
+                            "X-MMR-Channel": "dev",
+                            "X-MMR-Update-Owner": "client",
+                        },
                     }
                 }
             },

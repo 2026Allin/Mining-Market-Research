@@ -10,8 +10,8 @@ Read and follow the complete canonical workflow at
 The linked document is the workflow body for this Skill. Resolve its relative
 links from its own directory and do not duplicate, shorten, or reinterpret it.
 
-For EVERY substantive request, execute the shared update `check` once; never
-skip it because a previous turn was cached. Reuse only within this request.
+For every substantive request, reuse this request's successful Hook check and
+context_file, or execute the shared `check` fallback; never create a parallel cache.
 Read [update policy](../mining-market-research/references/update-notifications.md)
 for host arguments and permission rules. At successful finalization call
 `notice`; acknowledge only a notice actually included in the answer.

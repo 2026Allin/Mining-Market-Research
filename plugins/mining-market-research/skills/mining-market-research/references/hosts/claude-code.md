@@ -15,7 +15,8 @@ update, or diagnostic requests. Ordinary research follows shared
 the returned context_file. The six-hour cache is session-only in temporary
 storage, comparing the session-loaded version without native inventory.
 Native inventory remains mandatory for authorized upgrades.
-Use fixed Git lookup only when due. No hooks, automatic installation,
+Use fixed Git lookup only when due. Trusted plugin Hooks may share this context;
+see [Hook setup](../hooks.md). No automatic installation,
 or changes to host permission settings. Reload through the supported host workflow
 before testing an updated installation.
 

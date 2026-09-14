@@ -36,9 +36,10 @@ Chat compatibility is not Claude Code or Cowork certification.
 
 Both hosts natively load `skills/upgrade/SKILL.md` and the same shared upgrade
 workflow. Business workflows use `references/update-notifications.md` and
-`scripts/update_state.py`; no hooks, daemon, scheduler or MCP proxy is introduced.
-The helper reads native installed inventory and stores profile/platform/channel/
-scope-isolated state in a private SQLite database outside the versioned cache.
+`scripts/update_state.py`; native plugin Hooks share the same checker, with no
+daemon, scheduler or MCP proxy. The helper uses a private session-only temporary
+SQLite database and a bundled-version snapshot, never native inventory for
+automatic checks. Native inventory remains an explicit-install safeguard.
 On first use, or first use at least six hours after the last successful check,
 the agent performs one fixed Git tag lookup. No update yields no user-facing text.
 Failures stay silent, preserve last success, and back off for 30 minutes.

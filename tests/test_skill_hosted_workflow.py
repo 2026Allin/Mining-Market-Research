@@ -73,6 +73,7 @@ EXPECTED_SKILL_BUNDLE_FILES = {
     Path("references/hosts/codex.md"),
     Path("workflows/upgrade.md"),
     Path("references/update-notifications.md"),
+    Path("references/hooks.md"),
     Path("scripts/update_state.py"),
     Path("SKILL.md"),
     Path("agents/openai.yaml"),
@@ -549,7 +550,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 "tag_prefix",
             },
         )
-        self.assertEqual(release["version"], "0.6.0-dev.13")
+        self.assertEqual(release["version"], "0.6.0-dev.14")
         self.assertRegex(release["release_id"], r"^codex\.\d{14}$")
         self.assertEqual(release["git_ref"], "main")
         self.assertEqual(release["tag_prefix"], "mining-market-research/codex/v")
@@ -1294,24 +1295,30 @@ class SkillHostedWorkflowTest(unittest.TestCase):
         server = mcp_manifest["mcpServers"]["mining_market_research"]
         self.assertEqual(server["type"], "http")
         self.assertEqual(server["url"], "https://mcp.anchisesdata.com/mcp")
-        self.assertEqual(set(server), {"type", "url"})
+        self.assertEqual(set(server), {"type", "url", "http_headers"})
+        self.assertEqual(server["http_headers"], {
+            "X-MMR-Plugin-Version": manifest["version"].split("+", 1)[0],
+            "X-MMR-Plugin-Build": manifest["version"].split("+", 1)[1],
+            "X-MMR-Platform": "codex",
+            "X-MMR-Channel": "dev",
+            "X-MMR-Update-Owner": "client",
+        })
         serialized = json.dumps(mcp_manifest).lower()
         for forbidden in (
             "client_secret",
             "api_token",
             "authorization",
             "bearer",
-            "headers",
             "oauth",
         ):
             self.assertNotIn(forbidden, serialized)
 
     def test_manifest_metadata_and_starter_prompts_match_release(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.13")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.14")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.13(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.14(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(manifest["author"]["name"], "Anchises Capital")

@@ -97,6 +97,29 @@ class UpdateStateTest(unittest.TestCase):
         self.assertEqual(updates.probe(self.store, now=21699)['action'], 'cached')
         self.assertEqual(updates.probe(self.store, now=21700)['action'], 'check_required')
 
+    def test_codex_dev13_to_dev14_end_to_end_offline(self):
+        """Synthetic remote refs; no publication, install, or real network."""
+        loaded = '0.6.0-dev.13+codex.20260914074807'
+        newer = '0.6.0-dev.14+codex.20260915000000'
+        refs = ('a' * 40 + '\trefs/heads/main\n' + 'a' * 40 +
+                '\trefs/tags/' + self.metadata['tag_prefix'] + '0.6.0-dev.14\n')
+        with patch.object(updates, 'lookup_refs', return_value=refs) as lookup:
+            def check(now):
+                return updates.check_request(self.store, self.metadata, now=now,
+                    allow_network=True, lookup=lookup, clock=lambda: now)
+            self.assertEqual(check(100)['action'], 'recorded')
+            notice = self.notice(101, installed=loaded, loaded=loaded)
+            self.assertEqual(notice['action'], 'update_available')
+            # Display acknowledgement is not consent to installation.
+            updates.acknowledge(self.store, notice['ticket'], now=101)
+            self.assertEqual(check(21699)['network_queries'], 0)
+            self.assertEqual(self.notice(21699, installed=loaded, loaded=loaded)['action'], 'silent')
+            self.assertEqual(check(21700)['action'], 'recorded')
+            self.assertEqual(self.notice(21701, installed=loaded, loaded=loaded)['action'], 'update_available')
+            self.assertEqual(lookup.call_count, 2)
+            self.assertEqual(self.notice(22000, installed=newer, loaded=loaded)['action'], 'reload_required')
+            self.assertEqual(self.notice(22200, installed=newer, loaded=newer)['action'], 'silent')
+
     def test_decline_or_ignore_does_not_suppress_next_cycle(self):
         for response in ('decline', 'ignore'):
             with self.subTest(response=response):
@@ -212,7 +235,7 @@ class UpdateStateTest(unittest.TestCase):
         self.assertIn('restart the session', workflow)
         self.assertIn('check-only', workflow)
         self.assertIn('without running the updater', workflow)
-        self.assertFalse((plugin / 'hooks').exists())
+        self.assertTrue((plugin / 'hooks/hooks.json').is_file())
 
 
 if __name__ == '__main__':

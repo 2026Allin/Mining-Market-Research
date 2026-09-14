@@ -120,7 +120,8 @@ identity, report section, discovery list, or incidental company mention.
   reuse or call `get_connection_status` once using
   [service-access.md](service-access.md). Follow [update-notifications.md](update-notifications.md) once per request:
   probe the session-only six-hour success cache, fetch only when due, and reserve
-  a reminder only at successful finalization. No hooks or automatic installation.
+  a reminder only at successful finalization. Native Hooks share this cache;
+  never perform automatic installation.
 - For `primary_task=diagnostics`, bypass business query interpretation and
   follow [diagnostics.md](diagnostics.md). Run one
   `get_connection_status({})` call and one selected-platform plugin check as

@@ -51,10 +51,10 @@ MARKETPLACE = "Anchises-Analysis"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GIT_REF = "main"
 TAG_PREFIX = "mining-market-research/codex/v"
-CURRENT_VERSION = "0.6.0-dev.13"
-CURRENT_RELEASE = "0.6.0-dev.13+codex.20260806170519"
-TARGET_VERSION = "0.6.0-dev.14"
-TARGET_RELEASE = "0.6.0-dev.14+codex.20260808120000"
+CURRENT_VERSION = "0.6.0-dev.14"
+CURRENT_RELEASE = "0.6.0-dev.14+codex.20260806170519"
+TARGET_VERSION = "0.6.0-dev.15"
+TARGET_RELEASE = "0.6.0-dev.15+codex.20260808120000"
 MAIN_COMMIT = "1" * 40
 OTHER_COMMIT = "2" * 40
 TAG_OBJECT = "3" * 40
@@ -207,12 +207,12 @@ class PluginTagCheckTest(unittest.TestCase):
         )
         result = self._check(
             _refs(
-                "0.6.0-dev.14",
+                TARGET_VERSION,
                 head_commit=OTHER_COMMIT,
                 extra=(claude, *unrelated),
             )
         )
-        self.assertEqual(result["target_version"], "0.6.0-dev.14")
+        self.assertEqual(result["target_version"], TARGET_VERSION)
         self.assertGreater(checker.compare_versions("0.6.0-dev.14", "0.6.0-dev.13"), 0)
         self.assertGreater(checker.compare_versions("0.6.0", "0.6.0-dev.99"), 0)
 

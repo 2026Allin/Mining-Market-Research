@@ -106,5 +106,5 @@ class UpdateOptimizationTest(unittest.TestCase):
                      'company-report', 'company-comparison', 'market-analysis'):
             with self.subTest(skill=name):
                 text = (plugin / 'skills' / name / 'SKILL.md').read_text()
-                self.assertIn('EVERY substantive request', text)
+                self.assertIn('every substantive request', text.lower())
                 self.assertIn('notice', text)

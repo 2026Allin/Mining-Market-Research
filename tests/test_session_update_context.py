@@ -37,7 +37,7 @@ class SessionUpdateContextTest(unittest.TestCase):
                 def git_run(command, **kwargs):
                     self.assertEqual(command[:3], ['git', 'ls-remote', '--'])
                     refs = 'a'*40 + '\trefs/heads/main\n' + 'a'*40 + \
-                           '\trefs/tags/mining-market-research/' + platform + '/v0.6.0-dev.14\n'
+                           '\trefs/tags/mining-market-research/' + platform + '/v999.0.0\n'
                     kwargs['stdout'].write(refs.encode())
                     return Mock(returncode=0)
                 with patch.object(updates.subprocess, 'run', side_effect=git_run) as run:

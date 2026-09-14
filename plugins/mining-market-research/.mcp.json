@@ -2,7 +2,14 @@
   "mcpServers": {
     "mining_market_research": {
       "type": "http",
-      "url": "https://mcp.anchisesdata.com/mcp"
+      "url": "https://mcp.anchisesdata.com/mcp",
+      "http_headers": {
+        "X-MMR-Plugin-Version": "0.6.0-dev.14",
+        "X-MMR-Plugin-Build": "codex.20260914085519",
+        "X-MMR-Platform": "codex",
+        "X-MMR-Channel": "dev",
+        "X-MMR-Update-Owner": "client"
+      }
     }
   }
 }

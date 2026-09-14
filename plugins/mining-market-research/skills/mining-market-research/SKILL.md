@@ -93,6 +93,10 @@ hours have elapsed. At successful finalization execute `notice` and acknowledge
 only a notice included in the answer. Never infer that the previous result is
 still fresh. Reuse one actual check only across components of this request.
 
+A successful Hook check from this request also satisfies this gate. Reuse its
+context_file; if no Hook receipt exists, execute the Skill fallback. Follow the
+shared update policy for host-session joining; never initialize a parallel cache.
+
 For a substantive business request, call `get_connection_status` once and
 retain service-access state. Follow
 [references/update-notifications.md](references/update-notifications.md) once,

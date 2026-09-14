@@ -27,7 +27,7 @@ See [preview release notes](docs/mining-market-research-0.6.0-dev.11-release-not
   supplementation; date discovery uses `get_available_dates`, not physical tables.
 - Platform-only differences live inside the core Skill's `references/hosts`. Agent-driven update checks
   run on first use and the first use six hours after the last successful check.
-  No hooks; no update means no reminder. Explicit Upgrade verifies installation
+  Trusted native Hooks share the checker with Skill fallback; no update means no reminder. Explicit Upgrade verifies installation
   and requires a new session. Refusal or silence never authorizes installation.
 - Automatic checks are best-effort: real Chat sessions sometimes skip them.
   Explicit checking is the supported fallback; Chat updates require manual upload.

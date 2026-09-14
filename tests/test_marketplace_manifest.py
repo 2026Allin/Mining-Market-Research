@@ -57,14 +57,21 @@ class MarketplaceManifestTest(unittest.TestCase):
                     "mining_market_research": {
                         "type": "http",
                         "url": "https://mcp.anchisesdata.com/mcp",
+                        "http_headers": {
+                            "X-MMR-Plugin-Version": manifest["version"].split("+", 1)[0],
+                            "X-MMR-Plugin-Build": manifest["version"].split("+", 1)[1],
+                            "X-MMR-Platform": "codex",
+                            "X-MMR-Channel": "dev",
+                            "X-MMR-Update-Owner": "client",
+                        },
                     }
                 }
             },
         )
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.13")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.14")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.13(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.14(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(contract["contract_version"], "1.9.0-draft")

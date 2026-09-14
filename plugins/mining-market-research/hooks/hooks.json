@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "mining_market_research",
+      "hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\"", "timeout": 20}]
+    }],
+    "PostToolUse": [{
+      "matcher": "mining_market_research",
+      "hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\"", "timeout": 5}]
+    }]
+  }
+}

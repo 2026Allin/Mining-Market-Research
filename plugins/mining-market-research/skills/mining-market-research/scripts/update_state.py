@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agent-driven six-hour release checks. No hooks or installation.
+"""Shared agent/Hook six-hour release checks. No installation.
 
 The check action optionally performs one fixed Git lookup with --allow-network.
 Other actions remain network-free and accept externally captured refs.
@@ -73,6 +73,33 @@ def initialize_session(metadata, surface='native'):
 
 def initialize_chat(metadata):
     return initialize_session(metadata, 'claude-chat')
+
+
+def initialize_host_session(metadata, host_session_id):
+    """Join only an exact host-provided session; never scan other sessions.
+
+    A deterministic, private slot serializes Hook/Skill initialization. The
+    public context still contains a generated UUID4 and immutable snapshot.
+    """
+    if (not isinstance(host_session_id, str) or not host_session_id
+            or len(host_session_id) > 256 or any(ord(c) < 32 for c in host_session_id)):
+        raise InputError('invalid_host_session_id')
+    key = hashlib.sha256((str(os.getuid()) + ':' + metadata['platform'] + ':' + host_session_id).encode()).hexdigest()
+    root = Path(tempfile.gettempdir()) / ('mining-market-research-host-' + key)
+    root.mkdir(mode=0o700, exist_ok=True)
+    if root.is_symlink() or root.stat().st_uid != os.getuid() or root.stat().st_mode & 0o077:
+        raise InputError('unsafe_host_state_directory')
+    index = StateStore(root / 'index.sqlite3', 'context')
+    with index.transaction() as state:
+        filename = state.get('context_file')
+        if filename:
+            value = read_session_context(filename)
+            return {'action': 'initialized', 'context_file': filename, **value,
+                    'network_queries': 0, 'check_args': ['check', '--context-file', filename],
+                    'notice_args': ['notice', '--context-file', filename]}
+        result = initialize_session(metadata)
+        state['context_file'] = result['context_file']
+        return result
 
 
 def read_session_context(filename):
@@ -358,7 +385,7 @@ def acknowledge(store, ticket, *, now):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["init", "check", "probe", "record", "failed", "notice", "ack"])
+    parser.add_argument("action", choices=["init", "check", "probe", "record", "failed", "notice", "ack", "diagnose"])
     parser.add_argument("--platform", choices=["codex", "claude"])
     parser.add_argument("--ticket")
     parser.add_argument("--force", action="store_true")
@@ -366,6 +393,7 @@ def main():
     parser.add_argument('--surface', choices=['native', 'claude-chat'])
     parser.add_argument('--session-id')
     parser.add_argument('--context-file', help='Exact context_file returned by init; never reuse across conversations')
+    parser.add_argument('--host-session-id', help='Exact native host session ID; joins the Hook context, never invent one')
     parser.add_argument('--allow-network', action='store_true',
                         help='Use only when the host already permits the fixed Git lookup')
     args = parser.parse_args()
@@ -374,8 +402,16 @@ def main():
             if args.session_id or args.loaded_release or args.context_file:
                 raise InputError('init_generates_context_automatically')
             metadata = checker._load_metadata(checker.metadata_path_for_platform(args.platform or 'codex'))
-            print(json.dumps(initialize_session(metadata, args.surface or 'native')))
+            if args.host_session_id:
+                if args.surface == 'claude-chat':
+                    raise InputError('host_session_requires_native')
+                result = initialize_host_session(metadata, args.host_session_id)
+            else:
+                result = initialize_session(metadata, args.surface or 'native')
+            print(json.dumps(result))
             return
+        if args.host_session_id:
+            raise InputError('host_session_only_for_init')
         if not args.context_file:
             raise InputError('missing_context_file')
         if args.session_id or args.loaded_release:
@@ -391,7 +427,14 @@ def main():
         metadata = {**metadata, 'version': installer._base_version(args.loaded_release, platform=args.platform)}
         store = session_context(metadata, context['session_id'], args.loaded_release)
         now = time.time()
-        if args.action == 'check':
+        if args.action == 'diagnose':
+            with store.transaction() as state:
+                result = {'action': 'diagnostics', 'owner': state.get('update_check_owner', 'local'),
+                          'last_hook_receipt': state.get('last_hook_receipt'),
+                          'last_hook_check_receipt': state.get('last_hook_check_receipt'),
+                          'last_success_at': state['last_success_at'], 'network_queries': 0,
+                          'hook_trust': 'not_observable', 'server_takeover_enabled': False}
+        elif args.action == 'check':
             result = check_request(store, metadata, now=now, allow_network=args.allow_network,
                                    force=args.force)
         elif args.action == "probe":

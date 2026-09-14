@@ -1,7 +1,7 @@
 {
   "name": "mining-market-research",
   "displayName": "Mining Market Research",
-  "version": "0.6.0-dev.13+claude.20260914033532",
+  "version": "0.6.0-dev.14+claude.20260914085519",
   "description": "Research public companies with live web sources and analyze stock-market data.",
   "author": {
     "name": "Anchises Capital",

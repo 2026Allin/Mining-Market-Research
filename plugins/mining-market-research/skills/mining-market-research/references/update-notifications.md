@@ -1,16 +1,39 @@
-# Agent-driven update reminders (no hooks)
+# Shared update reminders: Hook and Skill fallback
 
 Apply on every substantive Mining Market Research request, including requests
 in an old conversation, even when only a specialist Skill was selected. The
-agent invokes the helper; there is no background process or hook. Reuse one
+agent or a trusted plugin Hook invokes the same helper; no daemon is used. Reuse one
 probe per user request across all components. This is best-effort agent behavior,
 not a promise of execution while the user is idle.
+
+## Native Hook coordination (phase one)
+
+Read [Hook installation and diagnostics](hooks.md) for setup or troubleshooting.
+Phase one keeps `update_check_owner=local`. Proposed MCP `plugin_runtime` fields
+are diagnostic-only; neither a header nor a server claim enables takeover.
+If the Hook supplies a context_file, reuse that exact path, including for notice
+and explicit upgrade checks. Never create a second context. If no context was
+supplied but the native host exposes its exact session ID, use
+`init --platform <host> --host-session-id <host-provided-id>` to join the same
+context. Never invent an ID or scan other sessions. Chat keeps its existing init.
+If a native host exposes neither a context nor an exact session ID, defer the
+automatic check until the first already-needed business MCP call returns. Use
+the Hook context if supplied; otherwise initialize the Skill fallback then.
+Do not make an extra MCP call just to discover a Hook. This avoids a Skill-created
+cache before the first Hook has had a chance to supply its shared context.
+
+A recorded/cached Hook check from THIS request satisfies the request's check.
+Otherwise execute the Skill check below using the same context. Absence of a
+Hook is not proof it was disabled or untrusted. Only the host can report trust.
+Hook context injection is not user-visible delivery: it never reserves or acks
+a notice. The existing finalization/authorization rules below still apply.
 
 ## At the start of the plugin request
 
 ### Preferred compact interface
 
-On EVERY substantive request actually execute `update_state.py check` once,
+On EVERY substantive request without a successful current-request Hook receipt,
+actually execute `update_state.py check` once,
 including immediately consecutive turns. The helper performs probe, at most
 one fixed Git lookup, and record/failed. Never substitute a remembered result.
 Use the session context below on every host. Add `--allow-network` ONLY when the host already permits this

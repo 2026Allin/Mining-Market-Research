@@ -15,11 +15,12 @@ import zipfile
 
 sys.dont_write_bytecode = True
 import sync_plugin_release as releases
+from render_mcp_config import render
 
 PLUGIN = Path(__file__).resolve().parents[1]
 SKILLS = {'mining-market-research', 'company-brief', 'company-report',
           'company-comparison', 'market-analysis', 'news-analysis', 'upgrade'}
-ROOTS = ('.claude-plugin', '.mcp.json', 'skills', 'assets')
+ROOTS = ('.claude-plugin', '.mcp.json', 'skills', 'assets', 'hooks')
 
 
 def validate_payload(payload):
@@ -31,6 +32,13 @@ def validate_payload(payload):
         raise ValueError('release metadata mismatch')
     if not releases.FULL_VERSION_RES['claude'].fullmatch(manifest['version']):
         raise ValueError('invalid build version')
+    config = json.loads(payload['.mcp.json'])
+    headers = config['mcpServers']['mining_market_research'].get('headers', {})
+    if any(name.startswith('X-MMR-') for name in headers):
+        expected = render({'mcpServers': {'mining_market_research': {}}}, meta, True)
+        for name, value in expected['mcpServers']['mining_market_research']['headers'].items():
+            if headers.get(name) != value:
+                raise ValueError('version header metadata mismatch')
     found = {name.split('/')[1] for name in payload if re.fullmatch(r'skills/[^/]+/SKILL.md', name)}
     if found != SKILLS:
         raise ValueError('unexpected skill set')
@@ -57,7 +65,7 @@ def validate_payload(payload):
     return manifest, meta
 
 
-def build(output_root, plugin=PLUGIN, now=None, release_snapshot=False):
+def build(output_root, plugin=PLUGIN, now=None, release_snapshot=False, version_headers=False):
     output_root = Path(output_root).resolve()
     plugin = Path(plugin).resolve()
     if output_root == plugin or plugin in output_root.parents:
@@ -76,6 +84,10 @@ def build(output_root, plugin=PLUGIN, now=None, release_snapshot=False):
                 payload[path.relative_to(plugin).as_posix()] = path.read_bytes()
     manifest_path = '.claude-plugin/plugin.json'
     metadata_path = 'skills/mining-market-research/references/plugin-release-claude.json'
+    # Source may be a Codex transport-test build. Regenerate declarations only
+    # after the Claude build identity is finalized; preserve unrelated headers.
+    payload['.mcp.json'] = json.dumps(render(json.loads(payload['.mcp.json']),
+                                           {}, False)).encode()
     manifest, metadata = validate_payload(payload)
     # Source metadata must already be synchronized before any staged changes.
     version = manifest['version'].split('+')[0]
@@ -96,6 +108,9 @@ def build(output_root, plugin=PLUGIN, now=None, release_snapshot=False):
     metadata['release_id'] = build_id
     payload[manifest_path] = (json.dumps(manifest, indent=2) + '\n').encode()
     payload[metadata_path] = (json.dumps(metadata, indent=2) + '\n').encode()
+    payload['hooks/platform.txt'] = b'claude\n'
+    payload['.mcp.json'] = (json.dumps(render(json.loads(payload['.mcp.json']), metadata,
+                                            version_headers), indent=2) + '\n').encode()
     validate_payload(payload)
     artifact = directory / ('mining-market-research-' + version + '-claude.zip')
     with zipfile.ZipFile(artifact, 'x', zipfile.ZIP_DEFLATED) as archive:
@@ -120,6 +135,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-root', required=True)
     parser.add_argument('--release-snapshot', action='store_true', help='Preserve synchronized source build identity for a release artifact')
+    parser.add_argument('--version-headers', action='store_true', help='Opt-in transport probe; does not enable server-side ownership')
     args = parser.parse_args()
-    result = build(args.output_root, release_snapshot=args.release_snapshot)
+    result = build(args.output_root, release_snapshot=args.release_snapshot, version_headers=args.version_headers)
     print(json.dumps({key: result[key] for key in ('archive', 'version', 'sha256')}, indent=2))

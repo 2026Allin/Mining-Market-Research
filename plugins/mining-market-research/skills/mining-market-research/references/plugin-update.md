@@ -12,7 +12,7 @@
 Apply this policy when a Mining Market Research Skill is selected for a
 explicit diagnostic or an authorized plugin operation. Ordinary business
 requests follow [update-notifications.md](update-notifications.md), using the
-same session-only six-hour successful-check cache and no hooks. Do not check on an unrelated request. Plugin release discovery is
+same session-only six-hour successful-check cache as native Hooks. Do not check on an unrelated request. Plugin release discovery is
 independent of MCP versions, MCP status, and MCP tool schemas.
 
 ## Select one platform adapter
