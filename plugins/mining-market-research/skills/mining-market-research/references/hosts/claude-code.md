@@ -20,5 +20,18 @@ see [Hook setup](../hooks.md). No automatic installation,
 or changes to host permission settings. Reload through the supported host workflow
 before testing an updated installation.
 
-This adapter covers Claude Code only. Claude Chat and Cowork require separate
-installation and capability validation and are not implicitly certified.
+Stop verifies the exact pending footer using last_assistant_message, not an
+assumption that the transcript is already flushed. UserPromptSubmit tracks a
+local turn when the host supplies no turn_id; PreToolUse can recover prior
+positive evidence. These operations are local-only and fail open. Never send
+ack or review from the agent. If Hooks are unavailable, use attempt_only with no
+conversation input, including App Code. Surface=native does not enable evidence
+mode; the helper requires an actual matching open-turn Hook receipt.
+
+Claude uses one package across web Chat, App Chat and App Code. Loaded builds may
+lag installation until a new session. Capabilities, not separate package names,
+choose the path; no CLI installation is required just to use this plugin.
+For explicit upgrade, verify the supported installer and matching inventory/source.
+If unavailable, provide only an actually available UI action or maintainer ZIP and
+verify loaded build in a new session. Never promise an Update button or infer CLI
+availability from the desktop label. Cowork capability remains separately verified.

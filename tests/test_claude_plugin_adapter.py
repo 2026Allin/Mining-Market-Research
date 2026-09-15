@@ -61,10 +61,10 @@ MARKETPLACE = "anchises-capital"
 REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
 GITHUB_REPOSITORY = "2026Allin/anchises-stock-qa"
 TAG_PREFIX = "mining-market-research/claude/v"
-CURRENT_VERSION = "0.6.0-dev.15"
-CURRENT_RELEASE = "0.6.0-dev.15+claude.20260806170037"
-TARGET_VERSION = "0.6.0-dev.16"
-TARGET_RELEASE = "0.6.0-dev.16+claude.20260808120000"
+CURRENT_VERSION = "0.6.0-dev.16"
+CURRENT_RELEASE = "0.6.0-dev.16+claude.20260806170037"
+TARGET_VERSION = "0.6.0-dev.17"
+TARGET_RELEASE = "0.6.0-dev.17+claude.20260808120000"
 MAIN_COMMIT = "4" * 40
 OTHER_COMMIT = "5" * 40
 

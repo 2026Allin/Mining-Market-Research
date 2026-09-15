@@ -35,8 +35,11 @@ read-only check may be approved but this plugin cannot make it permanent.
 
 ## Update in Claude Code
 
-Use this automated path only when the active surface is unambiguously Claude
-Code. After explicit authorization, pipe one fresh lookup to the updater:
+Use this automated path only when the supported native installer is available
+and enabled installation/source inventory matches the guarded contract, including
+App Code. A surface name or running Hook is not sufficient. Never install a CLI
+to unlock this path. If the supported path is unavailable before installation,
+use the manual handoff below. After explicit authorization, pipe one fresh lookup to the updater:
 
 ```text
 git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git | python3 <absolute-skill-directory>/scripts/update_installed_plugin.py --platform claude --remote-refs-stdin
@@ -70,14 +73,16 @@ On `updated`, say:
 
 > Mining Market Research 已更新到 `<version>`。当前对话仍使用启动时加载的旧 Skill 和 MCP catalog，请新建一个 Claude 对话后再使用新版本。
 
-## Hand off in Claude Chat, Desktop, and Cowork
+## Manual handoff when native installation is unavailable
 
-These surfaces must not run the Claude CLI updater. After exact authorization,
-perform one fresh Claude Tag recheck. If the validated update is still
-available, reply with only the fixed handoff after any necessary one-sentence
-context:
+Claude Chat uses manual updates. App Code also uses this path when the supported
+installer/inventory is unavailable. Claude is one package, not separate installs
+per tab. After authorization, perform one fresh Claude Tag recheck. If newer,
+describe only plugin-management actions actually visible to the user; do not
+promise an Update button or guess another UI path. A maintainer-supplied ZIP may
+be used through a supported upload action. State:
 
-> 请在 `Customize → Plugins → Mining Market Research → Update` 完成更新；完成后新建一个 Claude 对话。此处尚未执行或确认安装。
+> 请通过当前界面提供的插件管理方式更新；完成后新建会话核对 version/build。此处尚未执行或确认安装。
 
 Do not claim `updated`, do not write `installed_release_in_task`, and do not
 guess another UI path. If the fresh result is current, say no update is needed;

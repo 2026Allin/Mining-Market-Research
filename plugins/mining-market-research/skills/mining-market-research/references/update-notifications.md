@@ -6,6 +6,11 @@ agent or a trusted plugin Hook invokes the same helper; no daemon is used. Reuse
 probe per user request across all components. This is best-effort agent behavior,
 not a promise of execution while the user is idle.
 
+Claude web/Desktop Chat overrides: maintenance requires permitted local execution,
+never gates business work, and uses attempt-only notices without review/ack or
+conversation input. If permission is absent, skip maintenance without repeated
+approval prompts. See the [Chat adapter](hosts/claude-chat.md) for data boundaries.
+
 ## Native Hook coordination (phase one)
 
 Read [Hook installation and diagnostics](hooks.md) for setup or troubleshooting.
@@ -43,7 +48,7 @@ Do not ask for broad Python/network permissions or elevate during automatic
 business checks. Without permission, run without the flag: it remains silent
 and backs off for 30 minutes. Never install anything from a check.
 
-The compact flow is `check -> notice -> ack (only if shown)`. The `check`
+The compact flow is `check -> notice -> send -> delayed confirmation`. The `check`
 result includes `network_queries` (0 or 1); success is `recorded`, a cache hit
 is `cached`, and unavailable access/failure is silent. Do not call standalone
 probe/Git/record additionally in the same request. Native explicit install
@@ -115,12 +120,33 @@ For `silent`, append nothing. Do not show checks, timestamps, failures, “no
 updates”, or version content in ordinary answers without an actionable notice.
 Do not invent release highlights: the refs checker does not retrieve changelogs.
 
-Reserve a notice only when the final answer is ready. After composing the actual
-footer, acknowledge its ticket with `python3 <script> ack --context-file <returned-path> --ticket <ticket>`
-as the last helper action before sending. If delivery is interrupted, do not
-acknowledge an unseen notice; a reservation expires after two minutes. There is
-no transactional delivery callback: a crash between ack and send can suppress
-that cycle's reminder, so do not promise exactly-once delivery.
+Reserve only when the final answer is ready. Use `notice --locale zh-CN` for Chinese
+or `notice --locale en` for English (other languages currently use the English
+reminder template without changing the business answer's language).
+Copy returned `footer_text` exactly,
+as the final standalone paragraph (not a quotation or code block). Do not translate
+or rephrase this machine-verified footer. Never call ack before sending. Legacy
+ack records intent only and returns pending_confirmation, not delivery.
+
+Native Stop checks the host final message; UserPromptSubmit/PreToolUse recover
+positive evidence from the exact session transcript when its format is supported.
+No receipt proves the user read the message. The two-minute lock is separate
+from pending evidence. At most two reservations per six-hour cycle are allowed;
+retry_exhausted is not confirmed. A native turn cannot reserve twice.
+
+Claude web/Desktop Chat records only `attempted` notices, never confirmed delivery;
+do not run review/ack or supply conversation text. The same two-attempt cycle cap
+and lease bound retries. No transcript inspection or confirmation call is needed.
+
+All no-Hook hosts, including App Code, use attempt_only. Never run review/ack
+or pass conversation bodies to maintenance scripts. Review is rejected before
+stdin is read on every host. Native evidence mode requires an observed PreToolUse
+receipt matching the current open turn; init/surface/CLI presence is insufficient.
+Hook loss cannot promote earlier attempted notices to confirmed. A later suitable
+answer may make one compensating attempt after the lock expires; no repeated
+reminders on refusal/error/JSON turns. Check caching and installation capability
+are independent from delivery_mode. Maintenance permission denial never blocks business.
+Lost context cannot guarantee deduplication: never borrow another session's file.
 
 Do not reserve/ack for strict JSON/CSV, clarification, failed tasks, or a refusal
 acknowledgement. Preserve pending eligibility for a later suitable answer.

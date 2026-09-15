@@ -119,10 +119,11 @@ class HookUpdatesTest(unittest.TestCase):
         for event, timeout in [('PreToolUse', 20), ('PostToolUse', 5)]:
             self.assertEqual(len(config[event]), 1)
             rule = config[event][0]
-            self.assertEqual(rule['matcher'], '^mcp__mining_market_research__.*')
+            self.assertEqual(rule['matcher'], hook.TOOL.pattern)
             import re
             for tool in hook.TOOLS:
                 self.assertIsNotNone(re.fullmatch(rule['matcher'], 'mcp__mining_market_research__' + tool))
+                self.assertIsNotNone(re.fullmatch(rule['matcher'], 'mcp__plugin_mining-market-research_mining_market_research__' + tool))
             for tool in ('exec', 'Bash', 'mcp__other__search_news'):
                 self.assertIsNone(re.search(rule['matcher'], tool))
             self.assertNotIn('--diagnostic-only', rule['hooks'][0]['command'])

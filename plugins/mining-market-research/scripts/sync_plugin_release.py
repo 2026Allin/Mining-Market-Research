@@ -148,6 +148,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     platforms = tuple(PLATFORM_PATHS) if args.platform == "all" else (args.platform,)
     changed: list[str] = []
     try:
+        from sync_skill_entries import sync
+        sync(write=not args.check)
+        from sync_hook_config import sync as sync_hooks
+        sync_hooks(write=not args.check)
         for platform in platforms:
             if sync_release(check=args.check, platform=platform):
                 changed.append(platform)

@@ -16,6 +16,8 @@ import zipfile
 sys.dont_write_bytecode = True
 import sync_plugin_release as releases
 from render_mcp_config import render
+import sync_skill_entries as entries
+from sync_hook_config import hook_config
 
 PLUGIN = Path(__file__).resolve().parents[1]
 SKILLS = {'mining-market-research', 'company-brief', 'company-report',
@@ -23,7 +25,15 @@ SKILLS = {'mining-market-research', 'company-brief', 'company-report',
 ROOTS = ('.claude-plugin', '.mcp.json', 'skills', 'assets', 'hooks')
 
 
-def validate_payload(payload):
+def validate_payload(payload, entry_template=None):
+    if json.loads(payload['hooks/hooks.json']) != hook_config():
+        raise ValueError('hook config mismatch')
+    for required in ('scripts/runtime_contract.py', 'references/runtime-routing.md'):
+        if 'skills/mining-market-research/' + required not in payload:
+            raise ValueError('missing runtime contract: ' + required)
+    entry_template = entry_template if entry_template is not None else (PLUGIN / 'scripts/templates/business-entry.md').read_text()
+    if entries.render_payload(payload, entry_template) != payload:
+        raise ValueError('generated business entry mismatch')
     manifest = json.loads(payload['.claude-plugin/plugin.json'])
     meta = json.loads(payload['skills/mining-market-research/references/plugin-release-claude.json'])
     if manifest['name'] != 'mining-market-research' or manifest['skills'] != './skills/':
@@ -83,12 +93,16 @@ def build(output_root, plugin=PLUGIN, now=None, release_snapshot=False, version_
             if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc' and path.name != '.DS_Store':
                 payload[path.relative_to(plugin).as_posix()] = path.read_bytes()
     manifest_path = '.claude-plugin/plugin.json'
+    # Render required entry gates into the archive itself. Runtime hosts need
+    # neither this build template nor another cross-file read for the checklist.
+    template = (plugin / 'scripts/templates/business-entry.md').read_text()
+    payload = entries.render_payload(payload, template)
     metadata_path = 'skills/mining-market-research/references/plugin-release-claude.json'
     # Source may be a Codex transport-test build. Regenerate declarations only
     # after the Claude build identity is finalized; preserve unrelated headers.
     payload['.mcp.json'] = json.dumps(render(json.loads(payload['.mcp.json']),
                                            {}, False)).encode()
-    manifest, metadata = validate_payload(payload)
+    manifest, metadata = validate_payload(payload, template)
     # Source metadata must already be synchronized before any staged changes.
     version = manifest['version'].split('+')[0]
     previous = datetime.strptime(metadata['release_id'].split('.', 1)[1], '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
@@ -111,7 +125,7 @@ def build(output_root, plugin=PLUGIN, now=None, release_snapshot=False, version_
     payload['hooks/platform.txt'] = b'claude\n'
     payload['.mcp.json'] = (json.dumps(render(json.loads(payload['.mcp.json']), metadata,
                                             version_headers), indent=2) + '\n').encode()
-    validate_payload(payload)
+    validate_payload(payload, template)
     artifact = directory / ('mining-market-research-' + version + '-claude.zip')
     with zipfile.ZipFile(artifact, 'x', zipfile.ZIP_DEFLATED) as archive:
         for name, data in sorted(payload.items()):

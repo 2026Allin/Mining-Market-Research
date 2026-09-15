@@ -110,8 +110,9 @@ class UpdateStateTest(unittest.TestCase):
             self.assertEqual(check(100)['action'], 'recorded')
             notice = self.notice(101, installed=loaded, loaded=loaded)
             self.assertEqual(notice['action'], 'update_available')
-            # Display acknowledgement is not consent to installation.
-            updates.acknowledge(self.store, notice['ticket'], now=101)
+            # Without Hooks, bounded attempts never claim display confirmation.
+            self.assertEqual(notice['delivery_mode'], 'attempt_only')
+            self.notice(222, installed=loaded, loaded=loaded)
             self.assertEqual(check(21699)['network_queries'], 0)
             self.assertEqual(self.notice(21699, installed=loaded, loaded=loaded)['action'], 'silent')
             self.assertEqual(check(21700)['action'], 'recorded')
@@ -169,8 +170,8 @@ class UpdateStateTest(unittest.TestCase):
         self.assertEqual(self.notice(102)['action'], 'silent')
         next_notice = self.notice(221)
         self.assertEqual(next_notice['action'], 'update_available')
-        self.assertEqual(updates.acknowledge(self.store, first['ticket'], now=222)['action'], 'stale_ticket')
-        self.assertEqual(updates.acknowledge(self.store, next_notice['ticket'], now=222)['action'], 'acknowledged')
+        self.assertEqual(updates.acknowledge(self.store, first['ticket'], now=222)['action'], 'pending_confirmation')
+        self.assertEqual(updates.review_notice(self.store, next_notice['ticket'], next_notice['footer_text'], now=222)['reason'], 'conversation_review_disabled')
 
     def test_disk_upgrade_requires_reload_not_reinstall(self):
         self.success()

@@ -16,6 +16,8 @@ Unambiguous assent to refreshing a report goes to Company Report and its
 validated `refresh_action`, not installation. Clarify when both are pending.
 
 For Claude Chat, read [the Chat adapter](references/hosts/claude-chat.md).
+Use the [shared routing contract](references/runtime-routing.md) for task selection.
+For no-Hook or connector-only access, read [remote MCP boundaries](references/hosts/remote-mcp.md).
 Its session-only release checks and manual-update rules override native CLI
 checks in the diagnostic gate below; preserve the independent service check.
 
@@ -89,8 +91,11 @@ Execute the selected operational route and stop.
 
 Execute the shared `update_state.py check` on EVERY substantive request, even
 after a cached result on the previous turn. Only the helper decides whether six
-hours have elapsed. At successful finalization execute `notice` and acknowledge
-only a notice included in the answer. Never infer that the previous result is
+hours have elapsed. At successful finalization execute `notice`, copy its
+`footer_text` exactly at the end, and never ack before sending. Use the shared
+native delayed-confirmation protocol only with matching Hook evidence. All no-Hook hosts use permitted local
+maintenance and attempt-only notices: no review/ack or conversation input; skip
+unapproved maintenance without blocking business work. Never infer that the previous result is
 still fresh. Reuse one actual check only across components of this request.
 
 A successful Hook check from this request also satisfies this gate. Reuse its

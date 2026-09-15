@@ -24,6 +24,8 @@ import uuid
 sys.dont_write_bytecode = True
 import check_plugin_update as checker
 import update_installed_plugin as installer
+import notice_delivery as delivery
+import runtime_contract as runtime
 
 SUCCESS_SECONDS = 6 * 60 * 60
 FAILURE_SECONDS = 30 * 60
@@ -75,7 +77,7 @@ def initialize_chat(metadata):
     return initialize_session(metadata, 'claude-chat')
 
 
-def initialize_host_session(metadata, host_session_id):
+def initialize_host_session(metadata, host_session_id, *, existing_only=False):
     """Join only an exact host-provided session; never scan other sessions.
 
     A deterministic, private slot serializes Hook/Skill initialization. The
@@ -86,6 +88,8 @@ def initialize_host_session(metadata, host_session_id):
         raise InputError('invalid_host_session_id')
     key = hashlib.sha256((str(os.getuid()) + ':' + metadata['platform'] + ':' + host_session_id).encode()).hexdigest()
     root = Path(tempfile.gettempdir()) / ('mining-market-research-host-' + key)
+    if existing_only and not (root / 'index.sqlite3').is_file():
+        return None
     root.mkdir(mode=0o700, exist_ok=True)
     if root.is_symlink() or root.stat().st_uid != os.getuid() or root.stat().st_mode & 0o077:
         raise InputError('unsafe_host_state_directory')
@@ -97,6 +101,8 @@ def initialize_host_session(metadata, host_session_id):
             return {'action': 'initialized', 'context_file': filename, **value,
                     'network_queries': 0, 'check_args': ['check', '--context-file', filename],
                     'notice_args': ['notice', '--context-file', filename]}
+        if existing_only:
+            return None
         result = initialize_session(metadata)
         state['context_file'] = result['context_file']
         return result
@@ -184,9 +190,10 @@ def _check_request(store, metadata, *, now, allow_network, force, lookup, clock)
 
 
 def empty_state():
-    return {"schema_version": 3, "last_success_at": None, "last_attempt_at": None,
+    return {"schema_version": 4, "last_success_at": None, "last_attempt_at": None,
             "retry_after": 0, "latest_release": None, "check_cycle_id": None,
-            "notice_shown_cycle_id": None, "check_lease": None, "notice_lease": None}
+            "notice_shown_cycle_id": None, "check_lease": None, "notice_lease": None,
+            "notice_attempts": [], "delivery_turn": None, "delivery_turn_ended": False}
 
 
 def session_context(metadata, session_id, loaded_release):
@@ -203,14 +210,15 @@ def chat_context(metadata, session_id, loaded_release):
     return session_context(metadata, session_id, loaded_release)
 
 
-def session_notice(store, *, now, loaded_release, platform, surface='native'):
+def session_notice(store, *, now, loaded_release, platform, surface='native', locale='zh-CN'):
     # Reuse only comparison/lease logic; the loaded version is not installed inventory.
     result = reserve_notice(store, now=now, loaded_release=loaded_release,
-                            installed_release=loaded_release, platform=platform)
+                            installed_release=loaded_release, platform=platform,
+                            manual=surface == 'claude-chat', locale=locale)
     result.pop('installed_release', None)
     if result['action'] == 'update_available':
         result.update(version_basis='session_loaded', loaded_release=loaded_release,
-                      update_method='manual' if surface == 'claude-chat' else 'native')
+                      update_method='manual' if surface == 'claude-chat' else 'resolve_on_upgrade')
     return result
 
 
@@ -254,9 +262,16 @@ class StateStore:
                 if len(row[0]) > MAX_STATE_BYTES:
                     raise ValueError("oversized state")
                 parsed = json.loads(row[0])
-                if not isinstance(parsed, dict) or parsed.get("schema_version") != 3:
+                if not isinstance(parsed, dict) or parsed.get("schema_version") not in (3, 4):
                     raise ValueError("unsupported state")
                 state.update(parsed)
+                if parsed['schema_version'] == 3:
+                    # Legacy ack is not evidence. Preserve old suppression only
+                    # as an exhausted retry budget, never invent confirmation.
+                    state['legacy_suppressed_cycle'] = parsed.get('notice_shown_cycle_id')
+                    state['notice_shown_cycle_id'] = None
+                    state['notice_lease'] = None
+                state['schema_version'] = 4
             yield state
             connection.execute("INSERT OR REPLACE INTO state VALUES (?, ?)",
                                (self.scope, json.dumps(state, allow_nan=False)))
@@ -317,7 +332,7 @@ def record(store, ticket, *, now, release=None):
             state["retry_after"] = now + FAILURE_SECONDS
             return {"action": "silent"}
         state.update(last_success_at=now, retry_after=0, latest_release=release,
-                     check_cycle_id=ticket, notice_lease=None)
+                     check_cycle_id=ticket, notice_lease=None, notice_attempts=[])
         return {"action": "recorded", "cycle_id": ticket}
 
 
@@ -343,12 +358,15 @@ def installed_identity(metadata):
         return None, "unknown"
 
 
-def reserve_notice(store, *, now, loaded_release, installed_release, platform):
+def reserve_notice(store, *, now, loaded_release, installed_release, platform, manual=False, locale='zh-CN'):
     if not installed_release:
         return {"action": "silent"}
     loaded = installer._base_version(loaded_release, platform=platform)
     installed = installer._base_version(installed_release, platform=platform)
     with store.transaction() as state:
+        evidence = delivery.mode(state, allow_native=not manual) == 'evidence'
+        if evidence:
+            delivery.recover(state, now)
         last = state["last_success_at"]
         if not _timestamp(last) or not 0 <= now - last < SUCCESS_SECONDS:
             return {"action": "silent"}
@@ -356,6 +374,11 @@ def reserve_notice(store, *, now, loaded_release, installed_release, platform):
             return {"action": "silent"}
         if _live_lease(state["notice_lease"], now):
             return {"action": "silent"}
+        pending = delivery.attempts(state)
+        if (len(pending) >= 2 or state.get('legacy_suppressed_cycle') == state['check_cycle_id']):
+            return {'action': 'silent', 'reason': 'retry_exhausted'}
+        if evidence and pending and pending[-1].get('turn') == state['delivery_turn']:
+            return {'action': 'silent', 'reason': 'awaiting_turn_completion'}
         release = state["latest_release"]
         if release and checker.compare_versions(release["version"], installed) > 0:
             kind = "update_available"
@@ -367,27 +390,43 @@ def reserve_notice(store, *, now, loaded_release, installed_release, platform):
         ticket = uuid.uuid4().hex
         state["notice_lease"] = {"ticket": ticket, "until": now + NOTICE_LEASE_SECONDS,
                                  "cycle": state["check_cycle_id"]}
+        target = release['version'] if kind == 'update_available' else installed
+        text = delivery.footer(target, kind, manual, locale)
+        state['notice_attempts'] = pending + [{
+            'ticket': ticket, 'cycle': state['check_cycle_id'], 'target_version': target,
+            'turn': state.get('delivery_turn') if evidence else None, 'created_at': now,
+            'status': 'pending' if evidence else 'attempted',
+            'delivery_mode': 'evidence' if evidence else 'attempt_only',
+            'footer': text, 'footer_sha256': delivery.digest(text),
+            'transcript': state.get('delivery_transcript') if evidence else None, 'evidence_source': None}]
         return {"action": kind, "ticket": ticket, "installed_release": installed_release,
+                "footer_text": text, "delivery_status": "pending" if evidence else "attempted",
+                "delivery_mode": 'evidence' if evidence else 'attempt_only',
                 "target_version": release["version"] if kind == "update_available" else installed,
                 "install_source_matches": release.get("install_source_matches", False)}
 
 
 def acknowledge(store, ticket, *, now):
+    """Compatibility: old pre-send ack can only record intent, never delivery."""
     with store.transaction() as state:
-        lease = state["notice_lease"]
-        if (not _live_lease(lease, now) or lease.get("ticket") != ticket
-                or lease.get("cycle") != state["check_cycle_id"]):
+        pending = next((p for p in delivery.attempts(state) if p['ticket'] == ticket), None)
+        if pending is None:
             return {"action": "stale_ticket"}
-        state["notice_shown_cycle_id"] = state["check_cycle_id"]
-        state["notice_lease"] = None
-        return {"action": "acknowledged"}
+        pending['intent_recorded_at'] = now
+        return {"action": "pending_confirmation"}
+
+
+def review_notice(store, ticket, text, *, now):
+    """Compatibility rejection; never process or persist conversation input."""
+    return {'action': 'invalid_arguments', 'reason': 'conversation_review_disabled'}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["init", "check", "probe", "record", "failed", "notice", "ack", "diagnose"])
+    parser.add_argument("action", choices=["init", "check", "probe", "record", "failed", "notice", "ack", "review", "diagnose", "capabilities"])
     parser.add_argument("--platform", choices=["codex", "claude"])
     parser.add_argument("--ticket")
+    parser.add_argument('--locale', choices=['zh-CN', 'en'], default='zh-CN', help='Exact reminder template language')
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--loaded-release")
     parser.add_argument('--surface', choices=['native', 'claude-chat'])
@@ -398,6 +437,14 @@ def main():
                         help='Use only when the host already permits the fixed Git lookup')
     args = parser.parse_args()
     try:
+        if args.action == 'review':
+            raise InputError('conversation_review_disabled')
+        if args.action == 'capabilities':
+            if args.context_file or args.session_id or args.host_session_id or args.loaded_release:
+                raise InputError('capabilities_requires_host_not_session')
+            print(json.dumps({'action': 'capabilities', 'network_queries': 0,
+                **runtime.diagnostics(args.platform, args.surface)}))
+            return
         if args.action == 'init':
             if args.session_id or args.loaded_release or args.context_file:
                 raise InputError('init_generates_context_automatically')
@@ -421,6 +468,9 @@ def main():
                 or args.surface and args.surface != context['surface']):
             raise InputError('conflicting_context_arguments')
         args.platform, args.surface = context['platform'], context['surface']
+        if args.surface == 'claude-chat' and args.action in {'review', 'ack'}:
+            # Reject before reading stdin or opening the state database.
+            raise InputError('chat_delivery_confirmation_disabled')
         args.loaded_release = context['loaded_release']
         metadata = checker._load_metadata(checker.metadata_path_for_platform(args.platform))
         # Channel selection must remain based on this session, even after a disk upgrade.
@@ -430,9 +480,14 @@ def main():
         if args.action == 'diagnose':
             with store.transaction() as state:
                 result = {'action': 'diagnostics', 'owner': state.get('update_check_owner', 'local'),
+                          'runtime': runtime.diagnostics(args.platform, args.surface, state.get('hook_event_receipts')),
+                          'delivery_mode': delivery.mode(state, allow_native=args.surface != 'claude-chat'),
                           'last_hook_receipt': state.get('last_hook_receipt'),
                           'last_hook_check_receipt': state.get('last_hook_check_receipt'),
+                          'last_delivery_receipt': state.get('last_delivery_receipt'),
                           'last_success_at': state['last_success_at'], 'network_queries': 0,
+                          'notice_attempts': [{k: p.get(k) for k in ('ticket', 'cycle', 'target_version', 'status', 'evidence_source')}
+                                              for p in delivery.attempts(state)],
                           'hook_trust': 'not_observable', 'server_takeover_enabled': False}
         elif args.action == 'check':
             result = check_request(store, metadata, now=now, allow_network=args.allow_network,
@@ -450,7 +505,7 @@ def main():
             result = record(store, args.ticket, now=now, release=release)
         elif args.action == "notice":
             result = session_notice(store, now=now, loaded_release=args.loaded_release,
-                                    platform=args.platform, surface=args.surface)
+                                    platform=args.platform, surface=args.surface, locale=args.locale)
         else:
             result = acknowledge(store, args.ticket, now=now)
         print(json.dumps(result))

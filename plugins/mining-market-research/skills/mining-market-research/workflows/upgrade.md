@@ -24,6 +24,17 @@ explicit upgrade requests on Codex and Claude Code; it does not call MCP.
 
 ## Execute an authorized upgrade
 
+First establish the actual supported installation path. Claude is distributed as
+one package across Chat and Code; the current session may still load an old build.
+App Code is not inherently prohibited from native installation, but requires a
+working supported CLI and matching enabled plugin inventory/source, just like CLI
+sessions. Do not install a CLI to make an upgrade possible. A desktop label, missing
+CLI or absent Hooks does not establish the other capabilities.
+If no supported native installation path is available, stop before the updater:
+offer the host's actually visible plugin-management action or a maintainer-provided
+ZIP, then require a new session to verify loaded version/build. Do not promise an
+Update button exists. This is manual guidance, not a successful disk installation.
+
 For either check-only or upgrade, also read
 [update-notifications.md](../references/update-notifications.md). Acquire
 Initialize/reuse this conversation's context as documented there. For an
@@ -32,8 +43,10 @@ refs to its `record` action (or `failed` on lookup failure). Never fetch twice.
 This resets the six-hour clock only after a successful fresh check. If another
 check holds the lease, proceed with the explicitly requested check but do not
 overwrite its state. Do not append an automatic reminder to this operational
-answer. If `notice` returns a ticket, acknowledge it after including the checked
-version in the operational response, so the same cycle does not repeat it.
+answer. Do not reserve or ack merely because a version appears in an operational
+response. If explicitly presenting an update reminder, use the shared exact footer
+and native delayed-confirmation protocol; never ack a draft before sending.
+All no-Hook sessions use attempt-only notices without review/ack or conversation input.
 
 1. Capture one fresh `git ls-remote` result from the fixed repository using the
    active adapter; do not use a cached reminder as an installation target.

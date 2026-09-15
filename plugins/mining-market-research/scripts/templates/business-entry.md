@@ -1,11 +1,3 @@
----
-name: news-analysis
-description: Research mining, market, and company news with Mining Market Research. Use for headlines, recent events, catalysts, news timelines, and announcement-led market impact. Search the news corpus first and supplement with host web research when needed. Do not replace a full company report, company introduction, or quantitative market analysis.
----
-
-# Mining Market Research — News Analysis
-
-<!-- BEGIN GENERATED BUSINESS ENTRY -->
 ## Execution order for this request
 
 These maintenance steps surround the business workflow. Apply on every substantive request
@@ -40,9 +32,9 @@ An explicit plugin check/upgrade follows Upgrade instead, with no second check.
    Do not run an extra probe/Git/record sequence. Failures remain silent and do not
    block business work; never claim a check ran when it did not.
 4. **Perform the business workflow.** Read and follow the complete canonical workflow at
-   [../mining-market-research/workflows/news-analysis.md](../mining-market-research/workflows/news-analysis.md).
+   [../mining-market-research/workflows/{workflow}.md](../mining-market-research/workflows/{workflow}.md).
    Resolve its relative links from its own directory. On flattened mounts, read
-   `workflows/news-analysis.md` from the actual core Skill found in step 1. Read
+   `workflows/{workflow}.md` from the actual core Skill found in step 1. Read
    required business references fully; report unavailable evidence rather than
    inventing rules. The workflow owns the business result, not a separate Skill.
 5. **Finalize once.** For a successful normal-prose answer run
@@ -60,9 +52,3 @@ An explicit plugin check/upgrade follows Upgrade instead, with no second check.
 For permission-specific alternatives, lost context and diagnostic details, read
 [update policy](../mining-market-research/references/update-notifications.md).
 The helper owns six-hour timing and retries; a reminder never authorizes installation.
-<!-- END GENERATED BUSINESS ENTRY -->
-
-For event impact or price/volume explanations, follow the owning workflow's
-fusion branch and its shared company-type priorities and macro web research.
-Do not assume another Skill or the coordinator has loaded those rules.
-Headline-only and CSV-only tasks keep their lightweight paths.

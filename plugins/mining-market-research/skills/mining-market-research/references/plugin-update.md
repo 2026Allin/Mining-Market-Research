@@ -129,10 +129,12 @@ and run no installation command. After `explicit_authorization`, do not call
 MCP and do not reuse a cached result. Perform exactly one fresh fixed-repository
 Tag lookup using the selected adapter.
 
-In Codex and Claude Code, continue only through the selected adapter's fixed
-CLI preflight and update sequence. In Claude Chat, Claude Desktop, and Cowork,
-perform the fresh Tag recheck and then use only the fixed UI handoff in the
-Claude adapter; do not claim that the update completed.
+Use native installation only when the selected adapter's supported installer and
+matching enabled inventory/source are actually available, including App Code.
+Do not install a CLI to enable this path. For Chat or when native installation is
+unavailable, provide an actually visible UI action or maintainer-provided ZIP;
+do not promise an Update button or claim installation completed. Desktop naming
+and Hook availability alone do not determine installation capability.
 
 Each authorization permits one update attempt or one UI handoff only. On any
 failure, stop without retry, fallback, uninstall-first, config edits, force,

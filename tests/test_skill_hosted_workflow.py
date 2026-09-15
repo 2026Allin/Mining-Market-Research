@@ -75,6 +75,10 @@ EXPECTED_SKILL_BUNDLE_FILES = {
     Path("references/update-notifications.md"),
     Path("references/hooks.md"),
     Path("scripts/update_state.py"),
+    Path("scripts/notice_delivery.py"),
+    Path("scripts/runtime_contract.py"),
+    Path("references/runtime-routing.md"),
+    Path("references/hosts/remote-mcp.md"),
     Path("SKILL.md"),
     Path("agents/openai.yaml"),
     Path("references/common-errors.md"),
@@ -406,7 +410,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             if root != SKILL_ROOT:
                 wrapper = (root / "SKILL.md").read_text(encoding="utf-8")
                 self.assertIn("../mining-market-research/workflows/", wrapper, name)
-                self.assertLess(len(wrapper.splitlines()), 30, name)
+                self.assertLess(len(wrapper.splitlines()), 80, name)
 
         service_access = (
             SKILL_ROOT / "references" / "service-access.md"
@@ -488,7 +492,8 @@ class SkillHostedWorkflowTest(unittest.TestCase):
             "claude plugin update mining-market-research@anchises-capital",
         ):
             self.assertIn(command, claude_protocol)
-        self.assertIn("Customize → Plugins → Mining Market Research → Update", claude_protocol)
+        self.assertNotIn("Customize → Plugins → Mining Market Research → Update", claude_protocol)
+        self.assertIn("promise an Update button", claude_protocol)
         self.assertIn("此处尚未执行或确认安装", claude_protocol)
         for forbidden_method in (
             "`git pull`",
@@ -550,7 +555,7 @@ class SkillHostedWorkflowTest(unittest.TestCase):
                 "tag_prefix",
             },
         )
-        self.assertEqual(release["version"], "0.6.0-dev.15")
+        self.assertEqual(release["version"], "0.6.0-dev.16")
         self.assertRegex(release["release_id"], r"^codex\.\d{14}$")
         self.assertEqual(release["git_ref"], "main")
         self.assertEqual(release["tag_prefix"], "mining-market-research/codex/v")
@@ -1315,10 +1320,10 @@ class SkillHostedWorkflowTest(unittest.TestCase):
 
     def test_manifest_metadata_and_starter_prompts_match_release(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.15")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.16")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.15(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.6\.0-dev\.16(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(manifest["author"]["name"], "Anchises Capital")

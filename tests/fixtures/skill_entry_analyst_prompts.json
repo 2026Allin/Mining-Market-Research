@@ -1,0 +1,15 @@
+{
+  "purpose": "Real-host old/new entry comparison; these cases are not executed by unit tests.",
+  "cases": [
+    {"id": "first_news", "prompt": "查最新两条黄金矿业新闻。", "context": "fresh conversation"},
+    {"id": "followup_news", "prompt": "再看看白银公司的最新消息。", "context": "same conversation after first_news"},
+    {"id": "brief", "prompt": "用三四句话介绍一下 Rio Tinto。", "context": "fresh conversation"},
+    {"id": "report", "prompt": "看看 Rio Tinto 的公司研究报告。", "context": "fresh conversation"},
+    {"id": "comparison", "prompt": "比较 Rio Tinto 和 BHP 的主要业务与近期风险。", "context": "fresh conversation"},
+    {"id": "csv", "prompt": "下载 LSE 的 RIO 过去一个月的日线 CSV。", "context": "fresh conversation; no prose reminder if strict CSV"},
+    {"id": "long_context", "prompt": "现在重新查询最新两条黄金新闻。", "context": "long conversation after unrelated turns or compaction"},
+    {"id": "network_denied", "prompt": "查最新两条铜矿新闻。", "context": "helper Git lookup not authorized; business MCP available"}
+  ],
+  "compare": ["loaded version/build and full Skill read", "actual check or current-request Hook receipt", "same-session context reuse", "no repeated init", "notice only when eligible", "no pre-send ack", "business result preserved", "network query count"],
+  "evidence": "Use actual host tool traces. Never infer execution from this checklist; do not supplement missed steps during audit. No install or permission changes from test prompts."
+}

@@ -13,6 +13,7 @@ import uuid
 sys.dont_write_bytecode = True
 CORE = Path(__file__).resolve().parents[1] / 'skills/mining-market-research'
 sys.path.insert(0, str(CORE / 'scripts'))
+from runtime_contract import TOOL, EVENTS, capabilities, routing_text
 
 def diagnostic_path():
     return Path(tempfile.gettempdir()) / f'mining-market-research-hook-{os.getuid()}.jsonl'
@@ -27,7 +28,7 @@ def diagnostic_writer():
                   'at': time.time(), 'pid': os.getpid(), 'stage': stage}
         if isinstance(event, dict):
             kind = event.get('hook_event_name')
-            record['event'] = kind if kind in ('PreToolUse', 'PostToolUse') else 'other'
+            record['event'] = kind if kind in EVENTS else 'other'
             name = event.get('tool_name')
             # Never copy arbitrary input, arguments, results or exception text.
             match = TOOL.fullmatch(name) if isinstance(name, str) else None
@@ -61,7 +62,6 @@ def diagnostic_writer():
     return emit
 
 # Explicit aliases only: matcher is an optimization, not the trust boundary.
-TOOL = re.compile(r'^(?:mcp__mining_market_research__|mcp__plugin_mining-market-research_mining_market_research__|mining_market_research:)([a-z_]+)$')
 TOOLS = {'get_connection_status', 'get_stock_schema', 'screen_stocks', 'create_csv_export',
          'resolve_company_identity', 'get_company_report', 'prepare_company_report_generation',
          'list_news_filters', 'search_news', 'get_news_article'}
@@ -92,14 +92,22 @@ def handle(event, *, platform, allow_network=False, lookup=None, now=None,
     name = event.get('tool_name', '')
     match = TOOL.fullmatch(name) if isinstance(name, str) else None
     kind = event.get('hook_event_name')
-    if not match or match[1] not in TOOLS or kind not in ('PreToolUse', 'PostToolUse'):
+    if platform not in ('codex', 'claude'):
+        diagnostic('platform_unavailable', event)
+        return {}
+    lifecycle = kind in ('Stop', 'UserPromptSubmit', 'SessionStart', 'PreCompact')
+    if (event.get('agent_id') or (not lifecycle and
+            (not match or match[1] not in TOOLS or kind not in ('PreToolUse', 'PostToolUse')))):
         diagnostic('matcher_rejected', event)
         return {}
     diagnostic('initializing', event)
     import update_state as updates
     lookup = updates.lookup_refs if lookup is None else lookup
     metadata = updates.checker._load_metadata(updates.checker.metadata_path_for_platform(platform))
-    context = updates.initialize_host_session(metadata, event.get('session_id'))
+    context = updates.initialize_host_session(metadata, event.get('session_id'),
+        existing_only=lifecycle and kind != 'SessionStart')
+    if context is None:
+        return {}
     loaded = context['loaded_release']
     metadata = {**metadata, 'version': updates.installer._base_version(loaded, platform=platform)}
     store = updates.session_context(metadata, context['session_id'], loaded)
@@ -107,6 +115,53 @@ def handle(event, *, platform, allow_network=False, lookup=None, now=None,
     now = time.time() if now is None else now
     receipt = {'trigger': kind, 'owner': 'local', 'network_queries': 0,
                'notice_emitted': False, 'at': now}
+    with store.transaction() as state:
+        receipts = state.setdefault('hook_event_receipts', {})
+        receipts[kind] = {**receipt, 'execution': 'observed', 'context_output': False}
+    if kind in ('SessionStart', 'PreCompact'):
+        # No transcript reads, network, notice reservation or business-body capture.
+        if kind == 'PreCompact':
+            with store.transaction() as state:
+                state['route_needs_refresh'] = True
+            return {}
+        text = routing_text(CORE)
+        text += '\nCore Skill directory: ' + str(CORE) + '.'
+        text += '\nLoaded release: ' + loaded + '; context_file: ' + context['context_file'] + '.'
+        text += '\nReuse this context; startup did not check releases or reserve a notice.'
+        text += '\nNative Hook profile; execution of other events and Skill reads remains unverified.'
+        with store.transaction() as state:
+            state['route_needs_refresh'] = False
+            state['hook_event_receipts'][kind]['context_output'] = True
+        diagnostic('context_output', event)
+        return {'hookSpecificOutput': {'hookEventName': kind, 'additionalContext': text}}
+    if lifecycle or kind == 'PreToolUse':
+        with store.transaction() as state:
+            updates.delivery.recover(state, now)
+            current = state.get('delivery_turn')
+            turn = event.get('turn_id')
+            if not isinstance(turn, str) or not turn or len(turn) > 256:
+                turn = None
+            if kind == 'Stop':
+                evidence_turn = turn or current
+                results = []
+                for pending in updates.delivery.attempts(state):
+                    if pending.get('turn') == evidence_turn:
+                        results.append(updates.delivery.observe(state, ticket=pending['ticket'],
+                            text=event.get('last_assistant_message'), source='host_final_message',
+                            now=now, turn=evidence_turn))
+                if evidence_turn == current:
+                    state['delivery_turn_ended'] = True
+                state['last_delivery_receipt'] = {**receipt, 'results': results}
+            else:
+                if kind == 'UserPromptSubmit' or not current:
+                    state['delivery_turn'] = turn or uuid.uuid4().hex
+                    state['delivery_turn_ended'] = False
+                elif turn and turn != current:
+                    state['delivery_turn'] = turn
+                    state['delivery_turn_ended'] = False
+                state['delivery_transcript'] = updates.delivery.transcript_position(event.get('transcript_path'))
+        if lifecycle:
+            return {}
     if kind == 'PostToolUse':
         receipt['server_capability'] = server_capability(event.get('tool_response'))
         with store.transaction() as state:
@@ -124,7 +179,7 @@ def handle(event, *, platform, allow_network=False, lookup=None, now=None,
     if 'reason' in result:
         receipt['reason'] = result['reason']
     with store.transaction() as state:
-        first = not state.get('hook_route_injected')
+        first = not state.get('hook_route_injected') or state.get('route_needs_refresh', False)
         # A successful check and its cached reuse represent the same status.
         signature = [context['context_file'],
                      'success' if result['action'] in ('recorded', 'cached') else result['action'],
@@ -135,15 +190,21 @@ def handle(event, *, platform, allow_network=False, lookup=None, now=None,
         state['update_check_owner'] = 'local'
         state['last_hook_receipt'] = receipt
         state['last_hook_check_receipt'] = receipt
+        receipt['turn'] = state.get('delivery_turn')
+        state['hook_event_receipts'][kind].update(receipt)
+        state['hook_event_receipts'][kind]['context_output'] = bool(first or changed)
+        state['route_needs_refresh'] = False
     if not first and not changed:
         return {}
     # Pass the same context to the Skill. Do not reserve/ack a notice here:
     # injected context is not proof of user-visible delivery.
     text = 'Mining Market Research update context_file: ' + context['context_file'] + '. '
     text += 'Reuse this context for check/notice; no separate init. Hook check result: ' + result['action'] + '. '
-    text += 'At prose finalization, use notice and ack only for an actual update footer. Never install without explicit plugin-upgrade consent.'
+    text += 'Helper path: ' + str(CORE / 'scripts/update_state.py') + '. '
+    text += 'At prose finalization, call notice and copy footer_text exactly as the final standalone paragraph. Do not ack before sending; Stop verifies the final message. Never install without explicit plugin-upgrade consent.'
     if first:
-        text += ' Read the task-matching Mining Market Research Skill. News/price impact uses the fusion workflow; reports follow the MCP report status.'
+        text += ' Core Skill directory: ' + str(CORE) + '. Read the task-matching Mining Market Research Skill. News/price impact uses the fusion workflow; reports follow the MCP report status.'
+        text += '\n' + routing_text(CORE)
     return {'hookSpecificOutput': {'hookEventName': kind, 'additionalContext': text}}
 
 
