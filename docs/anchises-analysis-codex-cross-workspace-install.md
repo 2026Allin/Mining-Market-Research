@@ -14,7 +14,7 @@ Portal Scan, or a separate `codex mcp add` command.
   `company-comparison`, and `market-analysis`
 - MCP server key: `mining_market_research`
 - MCP server name: `Mining Market Research`
-- MCP URL: `https://mcp.anchisesdata.com/mcp`
+- MCP URL: `https://mcp.miningmarketresearch.com/mcp`
 - MCP version: discovered dynamically from `initialize.serverInfo.version`
 - Tools: 12
 - Authentication: none
@@ -31,7 +31,7 @@ metadata and plugin directory:
 
 ```bash
 codex plugin marketplace add \
-  https://github.com/2026Allin/anchises-stock-qa.git \
+  https://github.com/2026Allin/Mining-Market-Research.git \
   --ref main \
   --sparse .agents/plugins \
   --sparse plugins/mining-market-research
@@ -48,7 +48,7 @@ In **Add plugin marketplace**, enter:
 
 ```text
 Source
-https://github.com/2026Allin/anchises-stock-qa.git
+https://github.com/2026Allin/Mining-Market-Research.git
 
 Git ref
 main
@@ -88,7 +88,7 @@ same local user across Codex tasks and workspaces:
 3. In the approval dialog, review the fixed prefix and choose **Always allow**:
 
    ```text
-   git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git
+   git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git
    ```
 
 4. Return to **Approve for me** if desired.
@@ -117,11 +117,11 @@ restrict_to_allowed_sources = true
 
 [marketplaces.allowed_sources.anchises_analysis]
 source = "git"
-url = "https://github.com/2026Allin/anchises-stock-qa.git"
+url = "https://github.com/2026Allin/Mining-Market-Research.git"
 ref = "main"
 
 [plugins."anchises-analysis".mcp_servers.anchises_analysis.identity]
-url = "https://mcp.anchisesdata.com/mcp"
+url = "https://mcp.miningmarketresearch.com/mcp"
 ```
 
 When the stable ref changes, update or remove the exact `ref` constraint under
@@ -150,7 +150,7 @@ not authorize it, silence does nothing, and “not now” applies only to that
 acknowledgement turn.
 
 The automated flow supports only Marketplace `Anchises-Analysis` from
-`https://github.com/2026Allin/anchises-stock-qa.git` at `main`. Continue to set
+`https://github.com/2026Allin/Mining-Market-Research.git` at `main`. Continue to set
 the Git ref explicitly when installing. If Codex later omits or returns `null`
 for that default-branch metadata, the updater accepts it only when the same
 fresh remote lookup proves that `HEAD`, `refs/heads/main`, and the release Tag

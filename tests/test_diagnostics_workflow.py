@@ -19,7 +19,7 @@ DIAGNOSTICS = REFERENCE_ROOT / "diagnostics.md"
 CHECKER_PATH = SKILL_ROOT / "scripts" / "check_plugin_update.py"
 GOLDEN_CASES = ROOT / "tests" / "fixtures" / "golden_prompts.json"
 RESULT_CASES = ROOT / "tests" / "fixtures" / "diagnostics_results.json"
-REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
+REPOSITORY = "https://github.com/2026Allin/Mining-Market-Research.git"
 
 
 def _load_module(name: str, path: Path) -> Any:

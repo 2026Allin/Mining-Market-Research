@@ -25,8 +25,8 @@ from sync_hosted_contract import (  # noqa: E402
 
 
 RUN_LIVE = os.environ.get("RUN_LIVE_MCP_TESTS") == "1"
-ENDPOINT = "https://mcp.anchisesdata.com/mcp"
-HEALTH = "https://mcp.anchisesdata.com/health"
+ENDPOINT = "https://mcp.miningmarketresearch.com/mcp"
+HEALTH = "https://mcp.miningmarketresearch.com/health"
 TEST_CLIENT_VERSION = "1.0.0"
 
 
@@ -509,8 +509,8 @@ class LiveHostedContractTest(unittest.TestCase):
         self.assertNotIn("DROP TABLE stock_data", serialized)
 
         for metadata_url in (
-            "https://mcp.anchisesdata.com/.well-known/oauth-protected-resource",
-            "https://mcp.anchisesdata.com/mcp/.well-known/oauth-protected-resource",
+            "https://mcp.miningmarketresearch.com/.well-known/oauth-protected-resource",
+            "https://mcp.miningmarketresearch.com/mcp/.well-known/oauth-protected-resource",
         ):
             with self.subTest(url=metadata_url):
                 try:

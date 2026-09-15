@@ -48,13 +48,13 @@ release_sync = _load_module("anchises_release_sync", SYNC_PATH)
 
 PLUGIN_ID = "mining-market-research@Anchises-Analysis"
 MARKETPLACE = "Anchises-Analysis"
-REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
+REPOSITORY = "https://github.com/2026Allin/Mining-Market-Research.git"
 GIT_REF = "main"
 TAG_PREFIX = "mining-market-research/codex/v"
-CURRENT_VERSION = "0.6.0-dev.16"
-CURRENT_RELEASE = "0.6.0-dev.16+codex.20260806170519"
-TARGET_VERSION = "0.6.0-dev.17"
-TARGET_RELEASE = "0.6.0-dev.17+codex.20260808120000"
+CURRENT_VERSION = "0.7.0-dev.1"
+CURRENT_RELEASE = "0.7.0-dev.1+codex.20260806170519"
+TARGET_VERSION = "0.7.0-dev.2"
+TARGET_RELEASE = "0.7.0-dev.2+codex.20260808120000"
 MAIN_COMMIT = "1" * 40
 OTHER_COMMIT = "2" * 40
 TAG_OBJECT = "3" * 40
@@ -470,6 +470,7 @@ class PluginUpdateTest(unittest.TestCase):
         sources = (
             _marketplace_list(source_type="local", source="/tmp/dev"),
             _marketplace_list(source="https://github.com/example/wrong.git"),
+            _marketplace_list(source="https://github.com/2026Allin/anchises-stock-qa.git"),
             _marketplace_list(git_ref="qa-v2-auth"),
             json.dumps({"marketplaces": [{"name": MARKETPLACE}]}),
         )

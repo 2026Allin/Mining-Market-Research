@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import subprocess
 import unittest
 from pathlib import Path, PurePosixPath
@@ -13,6 +15,42 @@ OAUTH_PLAN = ROOT / "docs" / "hosted-mcp-oauth-migration-plan.md"
 
 
 class ReleaseRepositoryHygieneTest(unittest.TestCase):
+    def test_readme_tracks_latest_release_and_branding(self) -> None:
+        plugin = ROOT / "plugins" / "mining-market-research"
+        manifest = json.loads((plugin / ".codex-plugin/plugin.json").read_text())
+        claude = json.loads((plugin / ".claude-plugin/plugin.json").read_text())
+        version = manifest["version"].split("+", 1)[0]
+        self.assertEqual(claude["version"].split("+", 1)[0], version)
+        name = manifest["interface"]["displayName"]
+        logo = Path(manifest["interface"]["logo"])
+        self.assertTrue((plugin / logo).is_file())
+        readme = (ROOT / "README.md").read_text()
+        package_readme = (plugin / "README.md").read_text()
+        for text, logo_path in (
+            (readme, (plugin / logo).relative_to(ROOT).as_posix()),
+            (package_readme, logo.as_posix()),
+        ):
+            self.assertEqual(text.splitlines()[0], f"# {name}")
+            self.assertIn(f'src="{logo_path}"', text)
+            self.assertIn(f'alt="{name} logo"', text)
+        self.assertIn(f"Development preview: `{version}`", readme)
+        self.assertIn(f"Product version: `{version}`", package_readme)
+        self.assertEqual(
+            re.findall(r"^## What changed[^\n]*", readme, re.MULTILINE),
+            [f"## What changed in {version}"],
+        )
+        repository = manifest["repository"]
+        self.assertIn(f"{repository}/releases/tag/mining-market-research/codex/v{version}", readme)
+        self.assertIn(
+            f"{repository}/releases/download/mining-market-research/claude/v{version}/"
+            f"mining-market-research-{version}-claude.zip", readme,
+        )
+        notes = re.search(r"\[Latest release notes\]\(([^)]+)\)", readme)
+        self.assertIsNotNone(notes)
+        note_path = ROOT / notes.group(1)
+        self.assertTrue(note_path.is_file())
+        self.assertIn(version, note_path.read_text().splitlines()[0])
+
     def test_company_report_workflow_is_required_by_the_skill(self) -> None:
         workflow = SKILL_ROOT / "workflows" / "company-report.md"
         self.assertTrue(workflow.is_file())

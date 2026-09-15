@@ -65,7 +65,7 @@ an account-wide six-hour cache or another conversation's state. Notice stores it
 own footer, digest, attempt count and release identifiers, not business answers.
 No conversation body is required, persisted or uploaded by this Chat flow.
 Only an authorized `check --allow-network` invokes the fixed read-only Git tag
-lookup at https://github.com/2026Allin/anchises-stock-qa.git. Without the flag,
+lookup at https://github.com/2026Allin/Mining-Market-Research.git. Without the flag,
 check does not query that repository. Init/notice do not access the network.
 Plugin instructions do not grant shell or network permission. Do not install,
 upload, elevate or widen permissions as a side effect of maintenance.

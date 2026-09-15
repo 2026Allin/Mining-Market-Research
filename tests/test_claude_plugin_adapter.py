@@ -58,13 +58,13 @@ release_sync = _load_module("anchises_claude_release_sync", SYNC_PATH)
 
 PLUGIN_ID = "mining-market-research@anchises-capital"
 MARKETPLACE = "anchises-capital"
-REPOSITORY = "https://github.com/2026Allin/anchises-stock-qa.git"
-GITHUB_REPOSITORY = "2026Allin/anchises-stock-qa"
+REPOSITORY = "https://github.com/2026Allin/Mining-Market-Research.git"
+GITHUB_REPOSITORY = "2026Allin/Mining-Market-Research"
 TAG_PREFIX = "mining-market-research/claude/v"
-CURRENT_VERSION = "0.6.0-dev.16"
-CURRENT_RELEASE = "0.6.0-dev.16+claude.20260806170037"
-TARGET_VERSION = "0.6.0-dev.17"
-TARGET_RELEASE = "0.6.0-dev.17+claude.20260808120000"
+CURRENT_VERSION = "0.7.0-dev.1"
+CURRENT_RELEASE = "0.7.0-dev.1+claude.20260806170037"
+TARGET_VERSION = "0.7.0-dev.2"
+TARGET_RELEASE = "0.7.0-dev.2+claude.20260808120000"
 MAIN_COMMIT = "4" * 40
 OTHER_COMMIT = "5" * 40
 
@@ -215,7 +215,7 @@ class ClaudeManifestTest(unittest.TestCase):
                 "mcpServers": {
                     "mining_market_research": {
                         "type": "http",
-                        "url": "https://mcp.anchisesdata.com/mcp",
+                        "url": "https://mcp.miningmarketresearch.com/mcp",
                         "http_headers": {
                             "X-MMR-Plugin-Version": manifest["version"].split("+", 1)[0],
                             "X-MMR-Plugin-Build": manifest["version"].split("+", 1)[1],
@@ -258,7 +258,7 @@ class ClaudeManifestTest(unittest.TestCase):
         guide = CLAUDE_INSTALL_GUIDE.read_text(encoding="utf-8")
         normalized = " ".join(guide.split())
         for expected in (
-            "2026Allin/anchises-stock-qa@main",
+            "2026Allin/Mining-Market-Research@main",
             "claude plugin install mining-market-research@anchises-capital",
             "claude --plugin-dir .",
             "Claude Chat",
@@ -444,6 +444,7 @@ class ClaudeUpdateTest(unittest.TestCase):
     def test_wrong_source_or_non_main_ref_fails_closed(self) -> None:
         for marketplace in (
             _marketplace_list(repo="other/repository"),
+            _marketplace_list(repo="2026Allin/anchises-stock-qa"),
             _marketplace_list(ref="qa-v2-auth"),
             _marketplace_list(source="local"),
         ):

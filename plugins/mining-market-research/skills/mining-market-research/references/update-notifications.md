@@ -81,7 +81,7 @@ For the alternative low-level protocol run
 - `busy` or `silent`: continue business without any update content.
 - `check_required`: retain the opaque ticket. Only if network access is already
   permitted, execute one fixed command, with a short host-enforced timeout:
-  `git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git`.
+  `git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git`.
   Feed its captured stdout to `python3 <script> record --context-file <returned-path> --ticket <ticket>`.
   Do not put the whole transcript in stdin. On failure, denied access or timeout,
   use `python3 <script> failed --context-file <returned-path> --ticket <ticket>` and stay silent.

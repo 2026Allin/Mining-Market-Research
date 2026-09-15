@@ -15,20 +15,20 @@
     }
   },
   "source": {
-    "mcp_endpoint": "https://mcp.anchisesdata.com/mcp",
+    "mcp_endpoint": "https://mcp.miningmarketresearch.com/mcp",
     "access_mode": "public_noauth",
     "protocol_version": "2025-06-18",
     "server_name": "Mining Market Research",
     "server_version": "0.10.0",
     "instructions": "Mining Market Research is a read-only stock screening and analysis service. In public access mode no login is required; all callers share global rate and concurrency limits. Full market datasets may be used for server-side filtering and aggregate analysis. Price history is stored in stock_daily; discover markets with get_available_exchanges and trading dates with get_available_dates. list_stock_tables lists distinct physical tables. Row-level results shown to the host are limited to 200 rows per call and may continue only through the returned short-lived opaque cursor. Restricted mode allows at most 1,000 browsed rows per registered query; bulk mode allows continuation within its 200,000-row hard result limit. A Top-N value bounds the complete logical analysis and CSV result, not the display page. User-authored SQL OFFSET remains forbidden; SQL continuation requires an explicit stable ORDER BY. When next_cursor is present, tell the user which rows are shown and offer the next page; do not traverse many pages unless the user asks. CSV eligibility and file limits are controlled by the active server data policy and are returned in each rowset's export_policy. When restrictions are enabled, never reconstruct a dataset by splitting filters, dates, fields, or sort ranges. When bulk mode is enabled, complete structured screens and previously validated bounded or aggregate SQL results may be downloaded within the reported hard limits. If export is refused, continue with server-side analysis or suggest a compatible query. CSV download URLs are bearer capabilities and must not be shared. Before stock-data or company-report calls, resolve a company name or ticker to exchange, ticker, and company name; use chat context and primary web sources to disambiguate when needed. For company reports use get_company_report in auto mode first. Display valid existing English research with its ORIGINAL generation date, translate faithfully for the user's language, and ask whether to refresh. A translation is not new research; never add new facts to it. When the result is generation_ready, perform live web research immediately without mentioning expired or missing reports. User requests for updated research use refresh mode or prepare_company_report_generation directly. These return prompts, not finished reports. If live web research is unavailable, explain that limitation. Never upload, save or persist generated reports or translations. When working from news, pass up to five relevant news_codes and the user's research_focus; confirm the target company if there are multiple candidates. External, inactive, delisted and unmatched companies use Others and require identity and listing-status verification. ETF and fund instruments are not eligible. For news questions, put the user utterance and English search terms in search_news.q, stay inside the current NEWS_ACCESS option, review headline cards first, and fetch at most five full articles with get_news_article for one user question. Mining and covered news options follow the dynamic exchange catalog. An empty news result means no matching articles, not an unsupported exchange. Explicit invalid or out-of-policy filters reject the search without dropping them. Search the local corpus before asking the host to browse; prepare_news_web_research only prepares a prompt and does not fetch pages. Connection status reports only service access, authentication state, published limits, the active data policy, and the current news access option. Never ask users to paste credentials or tokens into chat.",
     "sync_state": "live",
-    "synced_at": "2026-09-13T14:46:09+00:00",
-    "descriptor_sha256": "9857b863146d3d1eb7e6fd4f1b999564f0a3fa78e32b3b135a3d0d9c3015f5a4"
+    "synced_at": "2026-09-15T06:51:09+00:00",
+    "descriptor_sha256": "29a0a4f31d0934a74c7eca7e331ba64326f697465b85c62ea66c7e360c51c2e0"
   },
   "production": {
-    "mcp_endpoint": "https://mcp.anchisesdata.com/mcp",
-    "resource": "https://mcp.anchisesdata.com",
-    "protected_resource_metadata": "https://mcp.anchisesdata.com/.well-known/oauth-protected-resource",
+    "mcp_endpoint": "https://mcp.miningmarketresearch.com/mcp",
+    "resource": "https://mcp.miningmarketresearch.com",
+    "protected_resource_metadata": "https://mcp.miningmarketresearch.com/.well-known/oauth-protected-resource",
     "issuer": "https://auth.anchisesdata.com/",
     "openid_configuration": "https://auth.anchisesdata.com/.well-known/openid-configuration",
     "authorization_endpoint": "https://auth.anchisesdata.com/authorize",
@@ -112,7 +112,7 @@
         "iss",
         "sub"
       ],
-      "audience": "https://mcp.anchisesdata.com"
+      "audience": "https://mcp.miningmarketresearch.com"
     }
   },
   "errors": {
@@ -493,6 +493,59 @@
                 "type": "null"
               }
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -600,6 +653,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },
@@ -731,6 +837,59 @@
               "period_seconds",
               "reset_at"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -848,6 +1007,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },
@@ -1063,6 +1275,59 @@
               "truncated",
               "next_cursor"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -1243,6 +1508,59 @@
               "truncated",
               "next_cursor"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -1367,6 +1685,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },
@@ -1986,6 +2357,59 @@
               "truncated",
               "next_cursor"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -2124,6 +2548,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },
@@ -2527,6 +3004,59 @@
               "truncated",
               "next_cursor"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -2821,6 +3351,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },
@@ -3681,6 +4264,59 @@
               "period_seconds",
               "reset_at"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -4015,6 +4651,59 @@
               "period_seconds",
               "reset_at"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -4225,6 +4914,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },
@@ -4610,6 +5352,59 @@
               "truncated",
               "next_cursor"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -4822,6 +5617,59 @@
               "period_seconds",
               "reset_at"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -5027,6 +5875,59 @@
               "period_seconds",
               "reset_at"
             ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
+            ]
           }
         },
         "additionalProperties": false,
@@ -5168,6 +6069,59 @@
               "limit",
               "period_seconds",
               "reset_at"
+            ]
+          },
+          "plugin_runtime": {
+            "type": "object",
+            "properties": {
+              "schema_version": {
+                "type": "integer",
+                "const": 1
+              },
+              "update_check_owner": {
+                "type": "string",
+                "const": "client"
+              },
+              "version_basis": {
+                "type": "string",
+                "enum": [
+                  "connection_declared",
+                  "unknown"
+                ]
+              },
+              "session_scope_verified": {
+                "type": "boolean",
+                "const": false
+              },
+              "check_status": {
+                "type": "string",
+                "enum": [
+                  "delegated",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "client_version_unknown",
+                  "invalid_client_metadata",
+                  "unsupported_platform",
+                  "unsupported_channel",
+                  "client_managed",
+                  "server_handoff_not_negotiated",
+                  "server_handoff_disabled",
+                  "runtime_unavailable"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "schema_version",
+              "update_check_owner",
+              "version_basis",
+              "session_scope_verified",
+              "check_status",
+              "reason"
             ]
           }
         },

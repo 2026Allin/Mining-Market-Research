@@ -10,7 +10,7 @@ their installation and runtime capabilities require separate validation.
 - Marketplace: `anchises-capital`
 - Install ID: `mining-market-research@anchises-capital`
 - Source: `plugins/mining-market-research`
-- MCP: `https://mcp.anchisesdata.com/mcp`
+- MCP: `https://mcp.miningmarketresearch.com/mcp`
 - Product version: `0.6.0-dev.11`
 - New update namespace: `mining-market-research/claude/v<semver>`; see the
   [identity migration boundary](plugin-brand-migration.md). This identity change
@@ -21,7 +21,7 @@ their installation and runtime capabilities require separate validation.
 Published GitHub installation (local changes are not published automatically):
 
 ```bash
-claude plugin marketplace add 2026Allin/anchises-stock-qa@main
+claude plugin marketplace add 2026Allin/Mining-Market-Research@main
 claude plugin install mining-market-research@anchises-capital
 ```
 

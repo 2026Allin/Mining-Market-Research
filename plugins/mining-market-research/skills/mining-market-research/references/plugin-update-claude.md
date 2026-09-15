@@ -1,5 +1,11 @@
 # Claude plugin update adapter
 
+Repository rename boundary: installations registered under the former repository
+are not automatically trusted through a redirect. If source validation fails,
+explain that the marketplace source must be migrated to the canonical repository
+through the host's installation controls with explicit user authorization.
+Do not silently rewrite configuration, remove marketplaces or retry installation.
+
 Use this adapter only in Claude Chat, Claude Desktop, Cowork, or Claude Code.
 The shared trigger, reminder, authorization, decline, failure, and final-order
 rules are defined in [plugin-update.md](plugin-update.md).
@@ -15,10 +21,10 @@ required when executing an authorized upgrade.
 Use the shared direct-Git probe/record alternative if the host permits only the
 Git segment. Capture exactly once, feed that same stdout to record and, for an
 authorized install, the guarded updater. Never fetch twice.
-Only the fixed repository https://github.com/2026Allin/anchises-stock-qa.git
+Only the fixed repository https://github.com/2026Allin/Mining-Market-Research.git
 and `mining-market-research/claude/v*` namespace are allowed.
 A reusable approval must cover only the exact direct Git prefix:
-`git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git`.
+`git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git`.
 Never request one for Python, a script, a shell, or general network access.
 Do not edit permissions or elevate automatic business checks.
 For a user-requested check, ask only for the narrow Git operation if required;
@@ -42,7 +48,7 @@ to unlock this path. If the supported path is unavailable before installation,
 use the manual handoff below. After explicit authorization, pipe one fresh lookup to the updater:
 
 ```text
-git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git | python3 <absolute-skill-directory>/scripts/update_installed_plugin.py --platform claude --remote-refs-stdin
+git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git | python3 <absolute-skill-directory>/scripts/update_installed_plugin.py --platform claude --remote-refs-stdin
 ```
 
 The updater accepts no target version, Tag, repository, branch, Marketplace,
@@ -57,8 +63,8 @@ claude plugin list --json
 ```
 
 The supported source is Marketplace `anchises-capital` from GitHub repository
-`2026Allin/anchises-stock-qa` or the exact Git URL
-`https://github.com/2026Allin/anchises-stock-qa.git`. An explicit ref must be
+`2026Allin/Mining-Market-Research` or the exact Git URL
+`https://github.com/2026Allin/Mining-Market-Research.git`. An explicit ref must be
 `main`. An omitted ref is accepted only when the captured remote `HEAD`,
 `refs/heads/main`, and selected release Tag resolve to the same commit. Local,
 URL-file, seed-managed, wrong-repository, explicit non-`main`, disabled,

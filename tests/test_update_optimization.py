@@ -67,7 +67,7 @@ class UpdateOptimizationTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 updates.lookup_refs()
             self.assertEqual(run.call_args.args[0], ['git', 'ls-remote', '--',
-                'https://github.com/2026Allin/anchises-stock-qa.git'])
+                'https://github.com/2026Allin/Mining-Market-Research.git'])
             self.assertEqual(run.call_args.kwargs['timeout'], 15)
             self.assertEqual(run.call_args.kwargs['env']['GIT_TERMINAL_PROMPT'], '0')
 

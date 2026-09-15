@@ -10,7 +10,7 @@ from sync_hosted_contract import MCPHttpClient
 @unittest.skipUnless(os.environ.get("RUN_LIVE_NATIVE") == "1", "opt-in live native capability checks")
 class LiveNativeCapabilitiesTest(unittest.TestCase):
     def test_dates_and_news_discovery_match_published_schemas(self):
-        client = MCPHttpClient("https://mcp.anchisesdata.com/mcp")
+        client = MCPHttpClient("https://mcp.miningmarketresearch.com/mcp")
         client.call("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
                     "clientInfo": {"name": "native-capability-test", "version": "1.0.0"}}, 1)
         client.notify("notifications/initialized", {})

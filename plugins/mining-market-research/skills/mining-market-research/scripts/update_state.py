@@ -139,7 +139,7 @@ def lookup_refs():
     """Fixed, noninteractive lookup. No remote-supplied command or URL."""
     with tempfile.TemporaryFile() as output:
         result = subprocess.run(
-            ['git', 'ls-remote', '--', 'https://github.com/2026Allin/anchises-stock-qa.git'],
+            ['git', 'ls-remote', '--', 'https://github.com/2026Allin/Mining-Market-Research.git'],
             stdout=output, stderr=subprocess.DEVNULL, timeout=LOOKUP_TIMEOUT_SECONDS,
             env={**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'never'},
             check=False)

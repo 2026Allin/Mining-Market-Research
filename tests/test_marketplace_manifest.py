@@ -56,7 +56,7 @@ class MarketplaceManifestTest(unittest.TestCase):
                 "mcpServers": {
                     "mining_market_research": {
                         "type": "http",
-                        "url": "https://mcp.anchisesdata.com/mcp",
+                        "url": "https://mcp.miningmarketresearch.com/mcp",
                         "http_headers": {
                             "X-MMR-Plugin-Version": manifest["version"].split("+", 1)[0],
                             "X-MMR-Plugin-Build": manifest["version"].split("+", 1)[1],
@@ -68,10 +68,10 @@ class MarketplaceManifestTest(unittest.TestCase):
                 }
             },
         )
-        self.assertEqual(manifest["version"].split("+", 1)[0], "0.6.0-dev.16")
+        self.assertEqual(manifest["version"].split("+", 1)[0], "0.7.0-dev.1")
         self.assertRegex(
             manifest["version"],
-            r"^0\.6\.0-dev\.16(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
+            r"^0\.7\.0-dev\.1(?:\+codex\.[0-9A-Za-z][0-9A-Za-z.-]*)?$",
         )
         self.assertLessEqual(manifest["version"].count("+codex."), 1)
         self.assertEqual(contract["contract_version"], "1.9.0-draft")
@@ -85,12 +85,12 @@ class MarketplaceManifestTest(unittest.TestCase):
         guide = CROSS_WORKSPACE_GUIDE.read_text(encoding="utf-8")
         normalized = " ".join(guide.split())
         for expected in (
-            "https://github.com/2026Allin/anchises-stock-qa.git",
+            "https://github.com/2026Allin/Mining-Market-Research.git",
             "--ref main",
             "--sparse .agents/plugins",
             "--sparse plugins/mining-market-research",
             "codex plugin add mining-market-research@Anchises-Analysis",
-            "https://mcp.anchisesdata.com/mcp",
+            "https://mcp.miningmarketresearch.com/mcp",
             "all seven Skills",
             "17 required tools",
         ):

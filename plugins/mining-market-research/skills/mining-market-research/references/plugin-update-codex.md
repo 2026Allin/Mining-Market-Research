@@ -1,5 +1,11 @@
 # Codex plugin update adapter
 
+Repository rename boundary: installations registered under the former repository
+are not automatically trusted through a redirect. If source validation fails,
+explain that the marketplace source must be migrated to the canonical repository
+through the host's installation controls with explicit user authorization.
+Do not silently rewrite configuration, remove marketplaces or retry installation.
+
 Use this adapter only in Codex. The shared trigger, reminder, authorization,
 decline, failure, and final-order rules are defined in
 [plugin-update.md](plugin-update.md).
@@ -15,10 +21,10 @@ required when executing an authorized upgrade.
 Use the shared direct-Git probe/record alternative if the host permits only the
 Git segment. Capture exactly once, feed that same stdout to record and, for an
 authorized install, the guarded updater. Never fetch twice.
-Only the fixed repository https://github.com/2026Allin/anchises-stock-qa.git
+Only the fixed repository https://github.com/2026Allin/Mining-Market-Research.git
 and `mining-market-research/codex/v*` namespace are allowed.
 A reusable approval must cover only the exact direct Git prefix:
-`git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git`.
+`git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git`.
 Never request one for Python, a script, a shell, or general network access.
 Do not edit permissions or elevate automatic business checks.
 For a user-requested check, ask only for the narrow Git operation if required;
@@ -28,14 +34,14 @@ For an explicit check requiring approval, request the direct Git command only:
 
 ```json
 {
-  "cmd": "git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git",
+  "cmd": "git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git",
   "sandbox_permissions": "require_escalated",
   "justification": "允许只读检查 Mining Market Research 的已发布版本吗？",
   "prefix_rule": [
     "git",
     "ls-remote",
     "--",
-    "https://github.com/2026Allin/anchises-stock-qa.git"
+    "https://github.com/2026Allin/Mining-Market-Research.git"
   ]
 }
 ```
@@ -67,7 +73,7 @@ After explicit authorization, pipe one fresh lookup to the updater exactly
 once:
 
 ```text
-git ls-remote -- https://github.com/2026Allin/anchises-stock-qa.git | python3 <absolute-skill-directory>/scripts/update_installed_plugin.py --remote-refs-stdin
+git ls-remote -- https://github.com/2026Allin/Mining-Market-Research.git | python3 <absolute-skill-directory>/scripts/update_installed_plugin.py --remote-refs-stdin
 ```
 
 Prefer captured refs from the shared upgrade workflow; do not repeat the lookup
@@ -87,7 +93,7 @@ codex plugin list --json
 The placeholders above are populated only by the bundled updater from validated
 release metadata; do not run them literally or substitute a guessed identity.
 The supported source is exactly the registered marketplace in that metadata, repository
-`https://github.com/2026Allin/anchises-stock-qa.git`, and Git ref `main`. If
+`https://github.com/2026Allin/Mining-Market-Research.git`, and Git ref `main`. If
 Codex omits or returns `null` for `marketplaceSource.refName`, accept it only
 when the captured remote `HEAD`, `refs/heads/main`, and selected release Tag
 resolve to the same commit. A local Marketplace, wrong repository, explicit

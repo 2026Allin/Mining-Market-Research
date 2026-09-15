@@ -2,11 +2,11 @@
   "schema_version": 2,
   "name": "mining-market-research",
   "platform": "claude",
-  "version": "0.6.0-dev.16",
-  "release_id": "claude.20260915033602",
+  "version": "0.7.0-dev.1",
+  "release_id": "claude.20260915065349",
   "plugin_id": "mining-market-research@anchises-capital",
   "marketplace": "anchises-capital",
-  "repository": "https://github.com/2026Allin/anchises-stock-qa.git",
+  "repository": "https://github.com/2026Allin/Mining-Market-Research.git",
   "git_ref": "main",
   "tag_prefix": "mining-market-research/claude/v"
 }

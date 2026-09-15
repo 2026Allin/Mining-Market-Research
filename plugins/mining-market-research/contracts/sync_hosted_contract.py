@@ -34,7 +34,7 @@ from hosted_contract import (
 from capability_contract import compatibility_changes, required_tools
 
 
-DEFAULT_ENDPOINT = "https://mcp.anchisesdata.com/mcp"
+DEFAULT_ENDPOINT = "https://mcp.miningmarketresearch.com/mcp"
 DEFAULT_OUTPUT = Path(__file__).with_name("hosted-mcp-v1.json")
 MCP_PROTOCOL_VERSION = "2025-06-18"
 CONTRACT_SYNC_CLIENT_VERSION = "1.0.0"

@@ -1,12 +1,14 @@
 # Mining Market Research
 
+<img src="assets/logo.png" alt="Mining Market Research logo" width="160">
+
 One self-contained MCP + Skills plugin for Codex and Claude Code. Both native
 manifests load the same seven Skill entries and `.mcp.json`; no generated copies
-or conversion layer. The public endpoint is `https://mcp.anchisesdata.com/mcp`.
+or conversion layer. The public endpoint is `https://mcp.miningmarketresearch.com/mcp`.
 
 ## Release identity and architecture
 
-- Product version: `0.6.0-dev.11`; platform cache identifiers remain separate.
+- Product version: `0.7.0-dev.1`; platform cache identifiers remain separate.
 - Display name: Mining Market Research. Technical slug: `mining-market-research`.
 - Codex marketplace: `Anchises-Analysis`; Claude marketplace: `anchises-capital`.
 - Entries: mining-market-research, company-brief, company-report, company-comparison,
@@ -157,7 +159,7 @@ without creating a Mining Market Research App ID:
 
 ```bash
 codex plugin marketplace add \
-  https://github.com/2026Allin/anchises-stock-qa.git \
+  https://github.com/2026Allin/Mining-Market-Research.git \
   --ref main \
   --sparse .agents/plugins \
   --sparse plugins/mining-market-research
@@ -180,7 +182,7 @@ Claude Code installs the same package from the root Claude Marketplace:
 
 ```bash
 claude plugin marketplace add \
-  2026Allin/anchises-stock-qa@main \
+  2026Allin/Mining-Market-Research@main \
   --sparse .claude-plugin plugins/mining-market-research
 
 claude plugin install mining-market-research@anchises-capital

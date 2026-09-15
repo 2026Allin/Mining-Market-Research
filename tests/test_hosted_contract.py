@@ -112,7 +112,7 @@ class HostedContractTest(unittest.TestCase):
             },
         )
         source = self.contract["source"]
-        self.assertEqual(source["mcp_endpoint"], "https://mcp.anchisesdata.com/mcp")
+        self.assertEqual(source["mcp_endpoint"], "https://mcp.miningmarketresearch.com/mcp")
         self.assertEqual(source["access_mode"], "public_noauth")
         self.assertEqual(source["server_name"], "Mining Market Research")
         self.assertRegex(
@@ -131,11 +131,11 @@ class HostedContractTest(unittest.TestCase):
         self.assertRegex(source["descriptor_sha256"], r"^[0-9a-f]{64}$")
         production = self.contract["production"]
         self.assertEqual(production["mcp_endpoint"], source["mcp_endpoint"])
-        self.assertEqual(production["resource"], "https://mcp.anchisesdata.com")
+        self.assertEqual(production["resource"], "https://mcp.miningmarketresearch.com")
         self.assertEqual(production["issuer"], "https://auth.anchisesdata.com/")
         self.assertEqual(
             production["protected_resource_metadata"],
-            "https://mcp.anchisesdata.com/.well-known/oauth-protected-resource",
+            "https://mcp.miningmarketresearch.com/.well-known/oauth-protected-resource",
         )
 
     def test_tool_names_order_and_error_codes_are_stable(self) -> None:
